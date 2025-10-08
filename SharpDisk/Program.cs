@@ -1,8 +1,13 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using SharpDisk.Core;
 using SharpDisk.Core.Mbr;
 using SharpDisk.Linux;
+using Humanizer.Bytes;
+
+if (!OperatingSystem.IsLinux())
+{
+    throw new NotSupportedException("Linux is not supported");
+}
 
 var blkPath = args[0];
 
@@ -11,21 +16,29 @@ var mbrRaw = blkStream.ReadSection(0, blkStream.LbaSize);
 
 var mbr = MbrPartitionTable.FromBinary(mbrRaw);
 
-Console.WriteLine($"Partitions of {blkPath}:");
+    
+Console.WriteLine($"{"Drive:", -16} {blkPath}");
+Console.WriteLine($"{"LBA Size:", -16} {new ByteSize(blkStream.LbaSize).ToString()}");
+Console.WriteLine($"{"LBA Count", -16} {blkStream.LbaCount}");
+Console.WriteLine($"{"Size in bytes:", -16} {new ByteSize(blkStream.Length).ToString()}");
+Console.WriteLine();
+
+Console.WriteLine("Partitions:");
 
 // Nagłówek tabeli
 Console.WriteLine(new string('-', 80)); // Linia oddzielająca
-Console.WriteLine($"{"FIRST LBA SECTOR",-20} {"LBA SECTORS COUNT",-20} {"BOOTABLE",-15} {"PARTITION TYPE",-30}");
+Console.WriteLine($"{"FIRST LBA",-16} {"LBA COUNT",-16} {"SIZE",-10} {"BOOTABLE",-16} {"PARTITION TYPE",-22}");
 Console.WriteLine(new string('-', 80)); // Linia oddzielająca
 
 // Wypisanie danych partycji
 foreach (var mbrPartition in mbr.Partitions)
 {
     Console.WriteLine(
-        $"{mbrPartition.FirstLba,-20} " +
-        $"{mbrPartition.LbaCount,-20} " +
-        $"{mbrPartition.Bootable,-15} " +
-        $"{mbrPartition.PartitionType,-30}"
+        $"{mbrPartition.FirstLba,-16} " +
+        $"{mbrPartition.LbaCount,-16} " +
+        $"{new ByteSize(mbrPartition.LbaCount * blkStream.LbaSize).ToString(), -10} " +
+        $"{mbrPartition.Bootable,-16} " +
+        $"{mbrPartition.PartitionType,-22}"
     );
 }
 Console.WriteLine(new string('-', 80)); // Linia zamykająca
