@@ -42,4 +42,20 @@ public sealed record MbrPartition
         BitConverter.TryWriteBytes(target[8..12].Span, FirstLba);
         BitConverter.TryWriteBytes(target[12..16].Span, LbaCount);
     }
+
+    public static MbrPartition FromBinary(ReadOnlyMemory<byte> source)
+    {
+        ReadOnlySpan<byte> sp = source.Span;
+        var mbrPartition = new MbrPartition
+        {
+            Bootable = (MbrBootable)sp[0],
+            FirstChs = CHSAddress.FromBinary(source[1..4]),
+            PartitionType = sp[4],
+            LastChs = CHSAddress.FromBinary(source[5..8]),
+            FirstLba = BitConverter.ToUInt32(source[8..12].Span),
+            LbaCount = BitConverter.ToUInt32(source[12..16].Span)
+        };
+        
+        return mbrPartition;
+    }
 }

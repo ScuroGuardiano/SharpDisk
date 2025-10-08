@@ -44,4 +44,25 @@ public class MbrPartitionTable
 
         return data;
     }
+
+    public static MbrPartitionTable FromBinary(ReadOnlyMemory<byte> data)
+    {
+        if (data.Length < 512)
+        {
+            throw new ArgumentOutOfRangeException(nameof(data), "MBR partition table must be at least 512 bytes long.");
+        }
+
+        var partitionsRaw = data[446..];
+        var partitionsBuilder = ImmutableArray.CreateBuilder<MbrPartition>();
+
+        for (int i = 0; i < 4; i++)
+        {
+            partitionsBuilder.Add(MbrPartition.FromBinary(partitionsRaw[(i * 16)..]));
+        }
+
+        return new MbrPartitionTable
+        {
+            _partitions = partitionsBuilder.DrainToImmutable()
+        };
+    }
 }

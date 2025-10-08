@@ -7,6 +7,8 @@ public class CHSAddress
 {
     private CHSAddress_Raw _raw;
 
+    private CHSAddress() {}
+    
     public CHSAddress(ushort cyllinder, byte head, byte sector)
     {
         Cyllinder = cyllinder;
@@ -31,7 +33,7 @@ public class CHSAddress
         {
             if (value > 1023)
             {
-                throw new InvalidOperationException("Cyllinder cannot be larger than 1023.");
+                throw new ArgumentOutOfRangeException(nameof(Cyllinder), "Cyllinder cannot be larger than 1023.");
             }
 
             byte high = (byte)((value >> 2) & 0b1100_0000);
@@ -47,7 +49,7 @@ public class CHSAddress
         {
             if (value > 63)
             {
-                throw new InvalidOperationException("Sector cannot be larger than 63.");
+                throw new ArgumentOutOfRangeException(nameof(Sector), "Sector cannot be larger than 63.");
             }
 
             _raw.CyllinderHighSector = (byte)((_raw.CyllinderHighSector & 0b1100_0000) | value);
@@ -57,6 +59,14 @@ public class CHSAddress
     public void ToBinary(Memory<byte> target)
     {
         _raw.ToBinary(target);
+    }
+
+    public static CHSAddress FromBinary(ReadOnlyMemory<byte> source)
+    {
+        return new CHSAddress
+        {
+            _raw = CHSAddress_Raw.FromBinary(source),
+        };
     }
 }
 
@@ -71,5 +81,15 @@ internal struct CHSAddress_Raw
         target.Span[0] = Head;
         target.Span[1] = CyllinderHighSector;
         target.Span[2] = CyllinderLow;
+    }
+
+    public static CHSAddress_Raw FromBinary(ReadOnlyMemory<byte> source)
+    {
+        return new CHSAddress_Raw()
+        {
+            Head = source.Span[0],
+            CyllinderHighSector = source.Span[1],
+            CyllinderLow = source.Span[2]
+        };
     }
 }
