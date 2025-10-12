@@ -22,9 +22,9 @@ public class LinuxBlkDeviceProvider : IBlkDeviceProvider
             var logicalBlockSizeRaw = ReadIfExists(Path.Combine(dev, "queue", "logical_block_size"));
             var model = ReadIfExists(Path.Combine(dev, "device", "model"));
             var roRaw = ReadIfExists(Path.Combine(dev, "ro"));
-            
-            await Task.WhenAll(uevent, sizeIn512BlocksRaw, logicalBlockSizeRaw, model, roRaw);
-            
+
+            await Task.WhenAll(uevent, sizeIn512BlocksRaw, logicalBlockSizeRaw, model, roRaw).ConfigureAwait(false);
+
             var ueventData = _ueventParser.Parse(uevent.Result);
             var sizeIn512Blocks = ulong.TryParse(sizeIn512BlocksRaw.Result, out var size) ? size : 0;
             var logicalBlockSize = uint.TryParse(logicalBlockSizeRaw.Result, out var lbs) ? lbs : 0;
