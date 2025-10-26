@@ -3,11 +3,11 @@ using System.Runtime.InteropServices;
 namespace SharpDisk.Core.Mbr;
 
 // ReSharper disable file InconsistentNaming
-public class CHSAddress
+public record struct CHSAddress
 {
     private CHSAddress_Raw _raw;
 
-    private CHSAddress() {}
+    public CHSAddress() {}
     
     public CHSAddress(ushort cyllinder, byte head, byte sector)
     {
@@ -70,7 +70,7 @@ public class CHSAddress
     }
 }
 
-internal struct CHSAddress_Raw
+internal record struct CHSAddress_Raw
 {
     public byte Head { get; set; }
     public byte CyllinderHighSector { get; set; }
