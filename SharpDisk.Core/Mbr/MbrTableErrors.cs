@@ -49,4 +49,23 @@ public enum MbrErrors : uint
     /// It's also a warning and it matters only for Windows I think. Generic MBR doesn't include that.
     /// </summary>
     InvalidReservedFields = 1 << 10,
+
+    /// <summary>
+    /// 0xEE and normal MBR entries, we have two partition tables - MBR and GPT, potentially unsafe situation.
+    /// Sometimes is indented tho, like for example in hybrid ISO images.
+    /// But for mutable drives it's unsafe, because tables are not kept in sync.
+    /// So basically we can have mismatch between partitions table, we can get overrides and corrupt data.
+    /// In edge case of course.
+    /// </summary>
+    HybridMbr,
+
+    /// <summary>
+    /// Multiple protective (0xEE) partitions
+    /// </summary>
+    MultipleProtectiveEntries,
+
+    /// <summary>
+    /// Entries 2-4 are not zeroed
+    /// </summary>
+    ProtectiveSlotsNotZeroed,
 }

@@ -1,7 +1,7 @@
 namespace SharpDisk.Core.Mbr;
 
 [Flags]
-public enum MbrPartitionErrors : ushort
+public enum MbrPartitionErrors : uint
 {
     None = 0,
     
@@ -34,12 +34,12 @@ public enum MbrPartitionErrors : ushort
     /// Partition size overflows the drive
     /// </summary>
     PartitionOverflow = 1 << 6,
-    
+
     /// <summary>
-    /// Unknown partition type, not necessary an error
+    /// Partition type is "Empty" but it doesn't have zeroed fields
     /// </summary>
-    InvalidPartitionType = 1 << 7,
-    
+    EmptyPartitionNotZeroed = 1 << 7,
+
     /// <summary>
     /// In case of CHS sector equals to 0 or not (1023, 255, 63) in case of ProtectiveMBR
     /// </summary>
@@ -51,7 +51,62 @@ public enum MbrPartitionErrors : ushort
     ChsLbaMismatch = 1 << 9,
     
     /// <summary>
-    /// Start sector is not aligned to 4K/1M (usually 2048 sector). Grok says it's a performance loss xD
+    /// Start sector is not aligned to 4K. Grok says it's a performance loss xD
     /// </summary>
-    UnalignedStart = 1 << 10,
+    Unaligned4KStart = 1 << 10,
+
+    /// <summary>
+    /// Windows Vista+ convention.
+    /// </summary>
+    Unaligned1MStart = 1 << 11,
+
+    /// <summary>
+    /// By convention or something first partition should be started 1MiB from the disk start.
+    /// This is to leave some space for additional bootloader code and stuff like that.
+    /// </summary>
+    FirstPartitionTooClose = 1 << 12,
+
+    /// <summary>
+    /// So, MBR standard doesn't enforce order of partition.
+    /// You can have partition 1 physically further away than partition 2 xD
+    /// Useful to display as some kind of warning
+    /// </summary>
+    PartitionNotInOrder = 1 << 13,
+
+    /// <summary>
+    /// Protective partition (0xEE) is not first.
+    /// </summary>
+    ProtectivePartitionNotFirst = 1 << 14,
+
+    /// <summary>
+    /// Protective partition (0xEE) is bootable. It shouldn't be.
+    /// </summary>
+    ProtectivePartitionBootable = 1 << 15,
+
+    /// <summary>
+    /// First Lba should be 1, if it's not it's invalid.
+    /// Purpose of this partition is to <b>protect</b> GPT and the rest of the drive
+    /// So it must start from Lba 1, coz this is where GPT starts
+    /// </summary>
+    ProtectiveFirstLbaInvalid = 1 << 16,
+
+    /// <summary>
+    /// SizeInLBA should cover entire drive or be 0xFFFFFFFF in case of uint overflow.
+    /// </summary>
+    ProtectiveSizeInvalid = 1 << 17,
+
+    /// <summary>
+    /// FirstCHS should be 00 02 00 - <see cref="CHSAddress.Second"/>
+    /// </summary>
+    ProtectiveFirstChsInvalid = 1 << 18,
+
+    /// <summary>
+    /// LastCHS should be equal to the last block of drive or FF FF FF - <see cref="CHSAddress.ProtectiveMbr"/>
+    /// </summary>
+    ProtectiveEndChsInvalid = 1 << 19,
+
+    /// <summary>
+    /// Size of protective partition is equal to <see cref="uint.MaxValue"/> - 1, but drive is smaller than that.
+    /// </summary>
+    ProtectiveSizeSaturated = 1 << 20,
 }

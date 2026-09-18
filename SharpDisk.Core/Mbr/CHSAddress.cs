@@ -3,93 +3,81 @@ using System.Runtime.InteropServices;
 namespace SharpDisk.Core.Mbr;
 
 // ReSharper disable file InconsistentNaming
-public record struct CHSAddress
+public readonly record struct CHSAddress
 {
-    private CHSAddress_Raw _raw;
+    private readonly CHSAddress_Raw _raw;
 
-    public CHSAddress() {}
-    
-    public CHSAddress(ushort cyllinder, byte head, byte sector)
+    public CHSAddress(ushort cylinder, byte head, byte sector)
     {
-        Cyllinder = cyllinder;
-        Head = head;
-        Sector = sector;
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(cylinder, (ushort)1023);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(sector, (byte)63);
+
+        _raw = new CHSAddress_Raw
+        {
+            Head = head,
+            CylinderHighSector = (byte)(((cylinder >> 2) & 0b1100_0000) | sector),
+            CylinderLow = (byte)(cylinder & 0xFF)
+        };
     }
+
+    private CHSAddress(CHSAddress_Raw raw) => _raw = raw;
+
 
     /// <summary>
     /// Not valid as CHS starts with (0, 0, 1) but in case of an empty partition it is valid.
     /// </summary>
     public static readonly CHSAddress Zero = new(0, 0, 0);
+
+    /// <summary>
+    /// 00 02 00 - first sector of the first track, used as StartingCHS of a protective MBR.
+    /// </summary>
     public static readonly CHSAddress Second = new(0, 0, 2);
+
+    /// <summary>
+    /// FE FF FF - conventional marker meaning "this LBA is beyond CHS addressing".
+    /// </summary>
     public static readonly CHSAddress TooLarge = new(1023, 254, 63);
-    public static readonly CHSAddress ProtectiveMBR = new(1023, 255, 63);
-    
-    public byte Head { get => _raw.Head; private set => _raw.Head = value; }
 
-    public ushort Cyllinder
-    {
-        get => (ushort)(((_raw.CyllinderHighSector & 0b1100_0000) << 2) | _raw.CyllinderLow);
-        private set
-        {
-            if (value > 1023)
-            {
-                throw new ArgumentOutOfRangeException(nameof(Cyllinder), "Cyllinder cannot be larger than 1023.");
-            }
+    /// <summary>
+    /// FF FF FF - alternative saturation marker, mandated for the EndingCHS of a protective MBR.
+    /// </summary>
+    public static readonly CHSAddress ProtectiveMbr = new(1023, 255, 63);
 
-            byte high = (byte)((value >> 2) & 0b1100_0000);
-            _raw.CyllinderHighSector = (byte)((_raw.CyllinderHighSector & 0b0011_1111) | high);
-            _raw.CyllinderLow = (byte)(value & 0xFF);
-        }
-    }
+    public readonly byte Head => _raw.Head;
 
-    public byte Sector
-    {
-        get => (byte)(_raw.CyllinderHighSector & 0b0011_1111);
-        private set
-        {
-            if (value > 63)
-            {
-                throw new ArgumentOutOfRangeException(nameof(Sector), "Sector cannot be larger than 63.");
-            }
+    public readonly ushort Cylinder => (ushort)(((_raw.CylinderHighSector & 0b1100_0000) << 2) | _raw.CylinderLow);
 
-            _raw.CyllinderHighSector = (byte)((_raw.CyllinderHighSector & 0b1100_0000) | value);
-        }
-    }
+    public readonly byte Sector => (byte)(_raw.CylinderHighSector & 0b0011_1111);
 
-    public void ToBinary(Memory<byte> target)
-    {
-        _raw.ToBinary(target);
-    }
+    /// <summary>
+    /// True for either conventional "beyond CHS range" marker (FE FF FF / FF FF FF).
+    /// </summary>
+    public readonly bool IsSaturated => this == TooLarge || this == ProtectiveMbr;
 
-    public static CHSAddress FromBinary(ReadOnlyMemory<byte> source)
-    {
-        return new CHSAddress
-        {
-            _raw = CHSAddress_Raw.FromBinary(source),
-        };
-    }
+    public readonly void ToBinary(Span<byte> target) => _raw.ToBinary(target);
+
+    public static CHSAddress FromBinary(ReadOnlySpan<byte> source)
+        => new(CHSAddress_Raw.FromBinary(source));
 }
 
-internal record struct CHSAddress_Raw
+internal readonly record struct CHSAddress_Raw
 {
-    public byte Head { get; set; }
-    public byte CyllinderHighSector { get; set; }
-    public byte CyllinderLow { get; set; }
+    public byte Head { get; init; }
+    public byte CylinderHighSector { get; init; }
+    public byte CylinderLow { get; init; }
 
-    public void ToBinary(Memory<byte> target)
+    public readonly void ToBinary(Span<byte> target)
     {
-        target.Span[0] = Head;
-        target.Span[1] = CyllinderHighSector;
-        target.Span[2] = CyllinderLow;
+        target[0] = Head;
+        target[1] = CylinderHighSector;
+        target[2] = CylinderLow;
     }
 
-    public static CHSAddress_Raw FromBinary(ReadOnlyMemory<byte> source)
+    public static CHSAddress_Raw FromBinary(ReadOnlySpan<byte> source) => new()
     {
-        return new CHSAddress_Raw()
-        {
-            Head = source.Span[0],
-            CyllinderHighSector = source.Span[1],
-            CyllinderLow = source.Span[2]
-        };
-    }
+        Head = source[0],
+        CylinderHighSector = source[1],
+        CylinderLow = source[2]
+    };
 }
+

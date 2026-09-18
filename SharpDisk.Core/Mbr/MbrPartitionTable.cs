@@ -7,10 +7,10 @@ public class MbrPartitionTable
     // 0-445 Some fucking crap no one cares about [bootloader code]
     // 446-509 Partitions
     private ImmutableArray<MbrPartition> _partitions = [
-        MbrPartition.Empty,
-        MbrPartition.Empty,
-        MbrPartition.Empty,
-        MbrPartition.Empty,
+        MbrPartition.Zeroed,
+        MbrPartition.Zeroed,
+        MbrPartition.Zeroed,
+        MbrPartition.Zeroed,
     ]; 
 
     public ImmutableArray<MbrPartition> Partitions
@@ -32,7 +32,7 @@ public class MbrPartitionTable
     /// Verifies MBR table for correctness
     /// </summary>
     /// <returns></returns>
-    public MbrVerificationResult Verify()
+    public MbrAnalyzeResult Verify()
     {
         // Verifies MBR Table for correctness.
         // First of all we need to verify the signature. It should be 0x55, 0xAA
@@ -47,14 +47,29 @@ public class MbrPartitionTable
         // Further verification makes no sense if partition table is empty, so let's check it
         if (IsEmpty())
         {
-            return new MbrVerificationResult()
+            return new MbrAnalyzeResult()
             {
                 IsEmpty = true,
                 TableErrors = tableErrors
             };
         }
-        
-        
+
+        if (IsProtective())
+        {
+            return new MbrAnalyzeResult()
+            {
+                IsProtective = true,
+                TableErrors = tableErrors
+            };
+        }
+
+
+        // TODO:
+
+        return new MbrAnalyzeResult()
+        {
+            TableErrors = tableErrors
+        };
     }
 
     /// <summary>
@@ -64,7 +79,7 @@ public class MbrPartitionTable
     public bool IsEmpty()
     {
         // I can use equals here, because MbrPartition is a record with only comparable types inside
-        return Partitions.All(p => p == MbrPartition.Empty);
+        return Partitions.All(p => p == MbrPartition.Zeroed);
     }
 
     /// <summary>
@@ -80,7 +95,7 @@ public class MbrPartitionTable
     public byte[] ToBinary()
     {
         var data = new byte[512];
-        var partitionsBin = data.AsMemory(446);
+        var partitionsBin = data.AsSpan(446);
 
         foreach (var partition in Partitions)
         {
@@ -94,7 +109,7 @@ public class MbrPartitionTable
         return data;
     }
 
-    public static MbrPartitionTable FromBinary(ReadOnlyMemory<byte> data)
+    public static MbrPartitionTable FromBinary(ReadOnlySpan<byte> data)
     {
         if (data.Length < 512)
         {
@@ -112,7 +127,7 @@ public class MbrPartitionTable
         return new MbrPartitionTable
         {
             _partitions = partitionsBuilder.DrainToImmutable(),
-            Signature = [data.Span[510], data.Span[511]]
+            Signature = [data[510], data[511]]
         };
     }
 }
