@@ -4,10 +4,14 @@ namespace SharpDisk.Core.Attributes;
 /// Attribute that will be used by code gen to give a list of nice descriptions of partition types.
 /// </summary>
 /// <remarks>
-/// Intended for later usage, currently code gen for it is not implemented
+/// Read by <c>PartitionTypeDescriptionGenerator</c> in SharpDisk.Core.Generators, which emits a
+/// lookup class per container - <c>MbrPartitionTypes</c> gets <c>MbrPartitionTypeDescriptions</c>.
+/// Several of these on one field is normal: MBR type bytes were never centrally assigned, so many
+/// are claimed by more than one vendor. Put the most likely meaning first; that is the one a UI
+/// shows when it has room for only one.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-public class PartitionTypeDescriptionAtrribute : Attribute
+public sealed class PartitionTypeDescriptionAttribute : Attribute
 {
     /// <param name="type">Partition named type</param>
     /// <param name="description">Partition description</param>
@@ -15,7 +19,7 @@ public class PartitionTypeDescriptionAtrribute : Attribute
     ///     Is commonly used, useful to display only common partition type list to the user
     ///     skipping obsolete ones
     /// </param>
-    public PartitionTypeDescriptionAtrribute(string type, string description, bool common)
+    public PartitionTypeDescriptionAttribute(string type, string description, bool common)
     {
         Type = type;
         Description = description;

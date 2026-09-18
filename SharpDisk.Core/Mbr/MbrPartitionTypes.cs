@@ -1,3 +1,5 @@
+using SharpDisk.Core.Attributes;
+
 namespace SharpDisk.Core.Mbr;
 
 
@@ -23,81 +25,107 @@ public static class MbrPartitionTypes
     /// <summary>
     /// Empty partition entry
     /// </summary>
+    [PartitionTypeDescription("Empty", "Empty partition table entry", true)]
     public const byte Empty = 0x00;
 
     /// <summary>
     /// FAT12 as primary partition in first physical 32 MB of disk or as logical drive anywhere on disk (else use 06h instead)
     /// </summary>
+    [PartitionTypeDescription("FAT12", "FAT12 primary partition in the first physical 32 MB of the disk, or a logical drive anywhere on the disk", false)]
     public const byte PrimaryFat12 = 0x01;
 
     /// <summary>
     /// XENIX root
     /// </summary>
+    [PartitionTypeDescription("XENIX Root", "XENIX root file system", false)]
     public const byte XenixRoot = 0x02;
 
     /// <summary>
     /// XENIX usr
     /// </summary>
+    [PartitionTypeDescription("XENIX /usr", "XENIX usr file system", false)]
     public const byte XenixUsr = 0x03;
 
     /// <summary>
     /// FAT16 with less than 65536 sectors (32 MB). As primary partition it must reside in first physical 32 MB of disk, or as logical drive anywhere on disk (else use 06h instead)
     /// </summary>
+    [PartitionTypeDescription("FAT16", "FAT16 with fewer than 65536 sectors (32 MB), primary partitions must reside in the first physical 32 MB", false)]
     public const byte Fat16 = 0x04;
 
     /// <summary>
     /// Extended partition with CHS addressing. Must reside in first physical 8 GB of disk, else use 0Fh instead
     /// </summary>
+    [PartitionTypeDescription("Extended (CHS)", "Extended partition with CHS addressing, must reside in the first physical 8 GB of the disk", true)]
     public const byte ExtendedChs = 0x05;
 
     /// <summary>
     /// FAT16B with 65536 or more sectors. Must reside in first physical 8 GB of disk, unless used for logical drives in an 0Fh extended partition (else use 0Eh instead). Also used for FAT12/FAT16 volumes in primary partitions if they do not reside in first physical 32 MB
     /// </summary>
+    [PartitionTypeDescription("FAT16B", "FAT16B with 65536 or more sectors, within the first physical 8 GB of the disk", true)]
     public const byte Fat16B = 0x06;
 
     /// <summary>
     /// IFS / HPFS / NTFS / exFAT / QNX (installable file system)
     /// </summary>
+    [PartitionTypeDescription("NTFS/exFAT", "Windows NTFS or exFAT volume, the usual meaning of this ID today", true)]
+    [PartitionTypeDescription("HPFS", "OS/2 High Performance File System volume", false)]
+    [PartitionTypeDescription("IFS", "Generic installable file system volume", false)]
+    [PartitionTypeDescription("QNX", "QNX file system stored under the installable file system ID", false)]
     public const byte InstallableFileSystem = 0x07;
 
     /// <summary>
     /// Logical sectored FAT12 or FAT16 (AIX boot/split, OS/2 1.0-1.3, Commodore MS-DOS 3.x, QNX 1.x/2.x, Dell logical sectored FAT)
     /// </summary>
+    [PartitionTypeDescription("Logical Sectored FAT", "Logical sectored FAT12 or FAT16 used by OS/2 1.0-1.3, Commodore MS-DOS 3.x and Dell", false)]
+    [PartitionTypeDescription("AIX Boot", "AIX bootable or split partition", false)]
+    [PartitionTypeDescription("QNX 1.x/2.x", "QNX 1.x or 2.x partition", false)]
     public const byte LogicalSectoredFat = 0x08;
 
     /// <summary>
     /// AIX data (Coherent file system, QNX 1.x/2.x, OS/2 1.x-4.x hidden C:)
     /// </summary>
+    [PartitionTypeDescription("AIX Data", "AIX data partition", false)]
+    [PartitionTypeDescription("Coherent Filesystem", "Coherent Unix file system", false)]
+    [PartitionTypeDescription("QNX 1.x/2.x", "QNX 1.x or 2.x partition", false)]
+    [PartitionTypeDescription("OS/2 Hidden C:", "OS/2 1.x-4.x hidden C: drive", false)]
     public const byte AixData = 0x09;
 
     /// <summary>
     /// OS/2 Boot Manager / Coherent swap / OPUS
     /// </summary>
+    [PartitionTypeDescription("OS/2 Boot Manager", "OS/2 Boot Manager partition", false)]
+    [PartitionTypeDescription("Coherent Swap", "Coherent Unix swap partition", false)]
+    [PartitionTypeDescription("OPUS", "OPUS partition", false)]
     public const byte Os2BootManager = 0x0A;
 
     /// <summary>
     /// FAT32 with CHS addressing
     /// </summary>
+    [PartitionTypeDescription("FAT32 (CHS)", "FAT32 volume with CHS addressing", true)]
     public const byte Fat32Chs = 0x0B;
 
     /// <summary>
     /// FAT32 with LBA addressing (INT 13h extensions)
     /// </summary>
+    [PartitionTypeDescription("FAT32 (LBA)", "FAT32 volume with LBA addressing using INT 13h extensions", true)]
     public const byte Fat32Lba = 0x0C;
 
     /// <summary>
     /// Silicon Safe (also seen as unused/reserved)
     /// </summary>
+    [PartitionTypeDescription("Silicon Safe", "Silicon Safe partition, also seen as unused or reserved", false)]
     public const byte SiliconSafe = 0x0D;
 
     /// <summary>
     /// FAT16B with LBA addressing (INT 13h extensions)
     /// </summary>
+    [PartitionTypeDescription("FAT16B (LBA)", "FAT16B volume with LBA addressing using INT 13h extensions", true)]
     public const byte Fat16BLba = 0x0E;
 
     /// <summary>
     /// Extended partition with LBA addressing (INT 13h extensions)
     /// </summary>
+    [PartitionTypeDescription("Extended (LBA)", "Extended partition with LBA addressing using INT 13h extensions", true)]
     public const byte ExtendedLba = 0x0F;
 
     // ---------------------------------------------------------------------
@@ -107,111 +135,144 @@ public static class MbrPartitionTypes
     /// <summary>
     /// OPUS
     /// </summary>
+    [PartitionTypeDescription("OPUS", "OPUS partition", false)]
     public const byte Opus = 0x10;
 
     /// <summary>
     /// Hidden FAT12 (OS/2 Boot Manager) / Leading Edge MS-DOS 3.x logical sectored FAT12
     /// </summary>
+    [PartitionTypeDescription("Hidden FAT12", "FAT12 volume hidden by the OS/2 Boot Manager", false)]
+    [PartitionTypeDescription("Leading Edge Sectored FAT12", "Leading Edge MS-DOS 3.x logical sectored FAT12", false)]
     public const byte HiddenFat12 = 0x11;
 
     /// <summary>
     /// Configuration/diagnostic partition (Compaq, Hewlett-Packard, NCR, Intel service partition, hibernation)
     /// </summary>
+    [PartitionTypeDescription("Diagnostic Partition", "Configuration or diagnostic partition used by Compaq, HP, NCR and Intel service tools", false)]
+    [PartitionTypeDescription("Hibernation", "Vendor hibernation partition", false)]
     public const byte DiagnosticPartition = 0x12;
 
     /// <summary>
     /// Hidden FAT16 with less than 65536 sectors / Omega file system (Astec) / AST MS-DOS 3.x logical sectored FAT
     /// </summary>
+    [PartitionTypeDescription("Hidden FAT16", "Hidden FAT16 with fewer than 65536 sectors", false)]
+    [PartitionTypeDescription("Omega Filesystem", "Astec Omega file system", false)]
+    [PartitionTypeDescription("AST Sectored FAT", "AST MS-DOS 3.x logical sectored FAT", false)]
     public const byte HiddenFat16 = 0x14;
 
     /// <summary>
     /// Hidden extended partition with CHS addressing (hidden by OS/2 Boot Manager)
     /// </summary>
+    [PartitionTypeDescription("Hidden Extended (CHS)", "Extended partition with CHS addressing hidden by the OS/2 Boot Manager", false)]
     public const byte HiddenExtendedChs = 0x15;
 
     /// <summary>
     /// Hidden FAT16B
     /// </summary>
+    [PartitionTypeDescription("Hidden FAT16B", "Hidden FAT16B volume", false)]
     public const byte HiddenFat16B = 0x16;
 
     /// <summary>
     /// Hidden IFS / HPFS / NTFS / exFAT
     /// </summary>
+    [PartitionTypeDescription("Hidden NTFS/exFAT", "Hidden Windows NTFS or exFAT volume", false)]
+    [PartitionTypeDescription("Hidden HPFS", "Hidden OS/2 High Performance File System volume", false)]
+    [PartitionTypeDescription("Hidden IFS", "Hidden installable file system volume", false)]
     public const byte HiddenInstallableFileSystem = 0x17;
 
     /// <summary>
     /// AST Zero Volt Suspend / SmartSleep partition
     /// </summary>
+    [PartitionTypeDescription("AST SmartSleep", "AST Zero Volt Suspend or SmartSleep partition", false)]
     public const byte AstSmartSleep = 0x18;
 
     /// <summary>
     /// Willowtech Photon coS
     /// </summary>
+    [PartitionTypeDescription("Willowtech Photon coS", "Willowtech Photon coS partition", false)]
     public const byte WillowtechPhotonCos = 0x19;
 
     /// <summary>
     /// Hidden FAT32
     /// </summary>
+    [PartitionTypeDescription("Hidden FAT32", "Hidden FAT32 volume", false)]
     public const byte HiddenFat32 = 0x1B;
 
     /// <summary>
     /// Hidden FAT32 with LBA addressing / ASUS recovery partition
     /// </summary>
+    [PartitionTypeDescription("Hidden FAT32 (LBA)", "Hidden FAT32 volume with LBA addressing", false)]
+    [PartitionTypeDescription("ASUS Recovery", "ASUS recovery partition", false)]
     public const byte HiddenFat32Lba = 0x1C;
 
     /// <summary>
     /// Hidden FAT16B with LBA addressing
     /// </summary>
+    [PartitionTypeDescription("Hidden FAT16B (LBA)", "Hidden FAT16B volume with LBA addressing", false)]
     public const byte HiddenFat16BLba = 0x1E;
 
     /// <summary>
     /// Hidden extended partition with LBA addressing
     /// </summary>
+    [PartitionTypeDescription("Hidden Extended (LBA)", "Hidden extended partition with LBA addressing", false)]
     public const byte HiddenExtendedLba = 0x1F;
 
     /// <summary>
     /// Windows Mobile update XIP / Willowsoft Overture File System (OFS1)
     /// </summary>
+    [PartitionTypeDescription("Windows Mobile Update XIP", "Windows Mobile execute-in-place update partition", false)]
+    [PartitionTypeDescription("Willowsoft OFS1", "Willowsoft Overture File System", false)]
     public const byte WindowsMobileUpdateXip = 0x20;
 
     /// <summary>
     /// HP Volume Expansion (SpeedStor) / FSo2 (Oxygen File System)
     /// </summary>
+    [PartitionTypeDescription("Oxygen Filesystem", "FSo2 Oxygen file system", false)]
+    [PartitionTypeDescription("HP Volume Expansion", "HP Volume Expansion (SpeedStor) partition", false)]
     public const byte OxygenFileSystem = 0x21;
 
     /// <summary>
     /// Oxygen Extended Partition Table
     /// </summary>
+    [PartitionTypeDescription("Oxygen Extended Table", "Oxygen extended partition table", false)]
     public const byte OxygenExtendedPartitionTable = 0x22;
 
     /// <summary>
     /// Windows Mobile boot XIP
     /// </summary>
+    [PartitionTypeDescription("Windows Mobile Boot XIP", "Windows Mobile execute-in-place boot partition", false)]
     public const byte WindowsMobileBootXip = 0x23;
 
     /// <summary>
     /// NEC MS-DOS 3.30 logical sectored FAT12/FAT16
     /// </summary>
+    [PartitionTypeDescription("NEC DOS Sectored FAT", "NEC MS-DOS 3.30 logical sectored FAT12 or FAT16", false)]
     public const byte NecDosLogicalSectoredFat = 0x24;
 
     /// <summary>
     /// Windows Mobile IMGFS
     /// </summary>
+    [PartitionTypeDescription("Windows Mobile IMGFS", "Windows Mobile IMGFS partition", false)]
     public const byte WindowsMobileImgFs = 0x25;
 
     /// <summary>
     /// Windows Recovery Environment (RE) hidden partition / RooterBOOT kernel / MirOS BSD partition
     /// </summary>
+    [PartitionTypeDescription("Windows Recovery Environment", "Hidden Windows Recovery Environment partition", true)]
+    [PartitionTypeDescription("RooterBOOT Kernel", "RooterBOOT kernel partition", false)]
+    [PartitionTypeDescription("MirOS BSD", "MirOS BSD partition", false)]
     public const byte WindowsRecoveryEnvironment = 0x27;
 
     /// <summary>
     /// AtheOS file system (AthFS)
     /// </summary>
+    [PartitionTypeDescription("AtheOS Filesystem", "AtheOS AthFS file system", false)]
     public const byte AtheOsFileSystem = 0x2A;
 
     /// <summary>
     /// SyllableSecure (SylStor), a variant of AthFS
     /// </summary>
+    [PartitionTypeDescription("SyllableSecure", "SyllableSecure (SylStor), a variant of AthFS", false)]
     public const byte SyllableSecure = 0x2B;
 
     // ---------------------------------------------------------------------
@@ -221,111 +282,142 @@ public static class MbrPartitionTypes
     /// <summary>
     /// NOS/ALT partition
     /// </summary>
+    [PartitionTypeDescription("NOS/ALT", "NOS/ALT partition", false)]
     public const byte NosAlt = 0x32;
 
     /// <summary>
     /// JFS on OS/2 or eComStation
     /// </summary>
+    [PartitionTypeDescription("OS/2 JFS", "JFS volume on OS/2 or eComStation", false)]
     public const byte Os2Jfs = 0x35;
 
     /// <summary>
     /// THEOS version 3.2, 2 GB partition
     /// </summary>
+    [PartitionTypeDescription("THEOS 3.2", "THEOS version 3.2 2 GB partition", false)]
     public const byte Theos32 = 0x38;
 
     /// <summary>
     /// Plan 9 edition 3 partition / THEOS version 4 spanned partition
     /// </summary>
+    [PartitionTypeDescription("Plan 9", "Plan 9 edition 3 partition", false)]
+    [PartitionTypeDescription("THEOS 4 Spanned", "THEOS version 4 spanned partition", false)]
     public const byte Plan9 = 0x39;
 
     /// <summary>
     /// THEOS version 4, 4 GB partition
     /// </summary>
+    [PartitionTypeDescription("THEOS 4", "THEOS version 4 4 GB partition", false)]
     public const byte Theos4 = 0x3A;
 
     /// <summary>
     /// THEOS version 4 extended partition
     /// </summary>
+    [PartitionTypeDescription("THEOS 4 Extended", "THEOS version 4 extended partition", false)]
     public const byte Theos4Extended = 0x3B;
 
     /// <summary>
     /// PartitionMagic recovery partition (PqRP, PowerQuest)
     /// </summary>
+    [PartitionTypeDescription("PartitionMagic Recovery", "PowerQuest PartitionMagic PqRP recovery partition", false)]
     public const byte PartitionMagicRecovery = 0x3C;
 
     /// <summary>
     /// Hidden NetWare
     /// </summary>
+    [PartitionTypeDescription("Hidden NetWare", "Hidden Novell NetWare partition", false)]
     public const byte HiddenNetWare = 0x3D;
 
     /// <summary>
     /// Venix 80286 / PICK R83
     /// </summary>
+    [PartitionTypeDescription("Venix 80286", "Venix 80286 Unix partition", false)]
+    [PartitionTypeDescription("PICK R83", "PICK R83 partition", false)]
     public const byte Venix80286 = 0x40;
 
     /// <summary>
     /// PPC PReP (Power PC Reference Platform) boot / Personal RISC Boot / Linux/MINIX sharing disk with DR DOS
     /// </summary>
+    [PartitionTypeDescription("PPC PReP Boot", "PowerPC Reference Platform boot partition", false)]
+    [PartitionTypeDescription("Personal RISC Boot", "Personal RISC boot partition", false)]
+    [PartitionTypeDescription("Linux/MINIX with DR-DOS", "Linux or MINIX sharing a disk with DR-DOS", false)]
     public const byte PpcPrepBoot = 0x41;
 
     /// <summary>
     /// Secure File System (SFS) / Windows dynamic disk (LDM/logical volume) / Linux swap sharing disk with DR DOS
     /// </summary>
+    [PartitionTypeDescription("Windows Dynamic Disk", "Windows dynamic disk LDM logical volume", true)]
+    [PartitionTypeDescription("Secure Filesystem (SFS)", "Secure File System partition", false)]
+    [PartitionTypeDescription("Linux Swap with DR-DOS", "Linux swap sharing a disk with DR-DOS", false)]
     public const byte WindowsDynamicDisk = 0x42;
 
     /// <summary>
     /// Linux native file system sharing disk with DR DOS
     /// </summary>
+    [PartitionTypeDescription("Linux Filesystem with DR-DOS", "Linux native file system sharing a disk with DR-DOS", false)]
     public const byte LinuxSharedWithDrDos = 0x43;
 
     /// <summary>
     /// GoBack (Wildfile / Adaptec / Roxio / Norton) partition
     /// </summary>
+    [PartitionTypeDescription("GoBack", "Wildfile, Adaptec, Roxio or Norton GoBack partition", false)]
     public const byte GoBack = 0x44;
 
     /// <summary>
     /// Priam / Boot-US boot manager / EUMEL/ELAN
     /// </summary>
+    [PartitionTypeDescription("Boot-US Boot Manager", "Boot-US boot manager partition", false)]
+    [PartitionTypeDescription("Priam", "Priam partition", false)]
+    [PartitionTypeDescription("EUMEL/ELAN", "EUMEL/ELAN partition", false)]
     public const byte BootUs = 0x45;
 
     /// <summary>
     /// EUMEL/ELAN (L2)
     /// </summary>
+    [PartitionTypeDescription("EUMEL/ELAN", "EUMEL/ELAN (L2) partition", false)]
     public const byte Eumel46 = 0x46;
 
     /// <summary>
     /// EUMEL/ELAN (L2)
     /// </summary>
+    [PartitionTypeDescription("EUMEL/ELAN", "EUMEL/ELAN (L2) partition", false)]
     public const byte Eumel47 = 0x47;
 
     /// <summary>
     /// EUMEL/ELAN (L2)
     /// </summary>
+    [PartitionTypeDescription("EUMEL/ELAN", "EUMEL/ELAN (L2) partition", false)]
     public const byte Eumel48 = 0x48;
 
     /// <summary>
     /// ALFS/THIN advanced lightweight file system for DOS
     /// </summary>
+    [PartitionTypeDescription("ALFS/THIN", "ALFS/THIN advanced lightweight file system for DOS", false)]
     public const byte AlfsThin = 0x4A;
 
     /// <summary>
     /// Aos (A2) file system (Oberon)
     /// </summary>
+    [PartitionTypeDescription("Aos Filesystem", "Oberon Aos (A2) file system", false)]
     public const byte AosFileSystem = 0x4C;
 
     /// <summary>
     /// Primary QNX POSIX volume on disk (QNX 4.x/6.x)
     /// </summary>
+    [PartitionTypeDescription("QNX Primary", "Primary QNX POSIX volume on disk (QNX 4.x/6.x)", false)]
     public const byte QnxPrimary = 0x4D;
 
     /// <summary>
     /// Secondary QNX POSIX volume on disk
     /// </summary>
+    [PartitionTypeDescription("QNX Secondary", "Secondary QNX POSIX volume on disk", false)]
     public const byte QnxSecondary = 0x4E;
 
     /// <summary>
     /// Tertiary QNX POSIX volume on disk / Oberon boot/data partition
     /// </summary>
+    [PartitionTypeDescription("QNX Tertiary", "Tertiary QNX POSIX volume on disk", false)]
+    [PartitionTypeDescription("Oberon Boot/Data", "Oberon boot or data partition", false)]
     public const byte QnxTertiary = 0x4F;
 
     // ---------------------------------------------------------------------
@@ -335,151 +427,193 @@ public static class MbrPartitionTypes
     /// <summary>
     /// Disk Manager 4 read-only partition / OnTrack Disk Manager / Lynx RTOS / Native Oberon alt
     /// </summary>
+    [PartitionTypeDescription("OnTrack Disk Manager (RO)", "Disk Manager 4 read-only partition", false)]
+    [PartitionTypeDescription("Lynx RTOS", "Lynx real-time operating system partition", false)]
+    [PartitionTypeDescription("Native Oberon", "Native Oberon alternative partition", false)]
     public const byte OnTrackDiskManager = 0x50;
 
     /// <summary>
     /// Disk Manager 4/6 read-write partition (Aux1) / Novell
     /// </summary>
+    [PartitionTypeDescription("OnTrack Disk Manager (RW)", "Disk Manager 4 or 6 read-write partition (Aux1)", false)]
+    [PartitionTypeDescription("Novell", "Novell partition", false)]
     public const byte OnTrackDiskManagerAux1 = 0x51;
 
     /// <summary>
     /// CP/M-80 / Microport System V/AT
     /// </summary>
+    [PartitionTypeDescription("CP/M-80", "CP/M-80 partition", false)]
+    [PartitionTypeDescription("Microport System V/AT", "Microport System V/AT Unix partition", false)]
     public const byte CpM80 = 0x52;
 
     /// <summary>
     /// Disk Manager 6 Aux3
     /// </summary>
+    [PartitionTypeDescription("OnTrack Disk Manager Aux3", "Disk Manager 6 Aux3 partition", false)]
     public const byte OnTrackDiskManagerAux3 = 0x53;
 
     /// <summary>
     /// Disk Manager 6 Dynamic Drive Overlay (DDO)
     /// </summary>
+    [PartitionTypeDescription("OnTrack Disk Manager DDO", "Disk Manager 6 Dynamic Drive Overlay", false)]
     public const byte OnTrackDiskManagerDdo = 0x54;
 
     /// <summary>
     /// EZ-Drive, Maxtor MaxBlast, or DriveGuide INT 13h redirector volume
     /// </summary>
+    [PartitionTypeDescription("EZ-Drive", "EZ-Drive, Maxtor MaxBlast or DriveGuide INT 13h redirector volume", false)]
     public const byte EzDrive = 0x55;
 
     /// <summary>
     /// AT&amp;T MS-DOS 3.x logical sectored FAT / EZ-BIOS redirected volume / VFeature partitioned volume
     /// </summary>
+    [PartitionTypeDescription("EZ-BIOS", "EZ-BIOS redirected volume", false)]
+    [PartitionTypeDescription("AT&T Sectored FAT", "AT&T MS-DOS 3.x logical sectored FAT", false)]
+    [PartitionTypeDescription("VFeature", "VFeature partitioned volume", false)]
     public const byte EzBios = 0x56;
 
     /// <summary>
     /// DrivePro / VNDI partition
     /// </summary>
+    [PartitionTypeDescription("DrivePro", "DrivePro partition", false)]
+    [PartitionTypeDescription("VNDI", "VNDI partition", false)]
     public const byte DrivePro = 0x57;
 
     /// <summary>
     /// Priam EDisk partitioned volume
     /// </summary>
+    [PartitionTypeDescription("Priam EDisk", "Priam EDisk partitioned volume", false)]
     public const byte PriamEDisk = 0x5C;
 
     /// <summary>
     /// SpeedStor hidden FAT12
     /// </summary>
+    [PartitionTypeDescription("SpeedStor Hidden FAT12", "SpeedStor hidden FAT12 volume", false)]
     public const byte SpeedStorHiddenFat12 = 0x61;
 
     /// <summary>
     /// Unix System V (SCO, ISC Unix, UnixWare, ...), Mach, GNU Hurd
     /// </summary>
+    [PartitionTypeDescription("Unix System V", "Unix System V such as SCO, ISC Unix or UnixWare", false)]
+    [PartitionTypeDescription("Mach", "Mach partition", false)]
+    [PartitionTypeDescription("GNU Hurd", "GNU Hurd partition", false)]
     public const byte UnixSystemV = 0x63;
 
     /// <summary>
     /// PC-ARMOUR protected partition / Novell NetWare 286, 2.xx
     /// </summary>
+    [PartitionTypeDescription("Novell NetWare 286", "Novell NetWare 286, 2.xx partition", false)]
+    [PartitionTypeDescription("PC-ARMOUR", "PC-ARMOUR protected partition", false)]
     public const byte NetWare286 = 0x64;
 
     /// <summary>
     /// Novell NetWare File System 386 (NetWare 386, 3.x or 4.x)
     /// </summary>
+    [PartitionTypeDescription("Novell NetWare 386", "Novell NetWare File System 386 (NetWare 3.x or 4.x)", false)]
     public const byte NetWare386 = 0x65;
 
     /// <summary>
     /// Novell NetWare File System 386 / Storage Management Services (SMS)
     /// </summary>
+    [PartitionTypeDescription("NetWare SMS", "Novell NetWare File System 386 with Storage Management Services", false)]
     public const byte NetWareSms = 0x66;
 
     /// <summary>
     /// Novell Wolf Mountain
     /// </summary>
+    [PartitionTypeDescription("Novell Wolf Mountain", "Novell Wolf Mountain partition", false)]
     public const byte NetWareWolfMountain = 0x67;
 
     /// <summary>
     /// Novell (reserved)
     /// </summary>
+    [PartitionTypeDescription("Novell Reserved", "Reserved by Novell", false)]
     public const byte Novell68 = 0x68;
 
     /// <summary>
     /// Novell Storage Services (NSS)
     /// </summary>
+    [PartitionTypeDescription("Novell Storage Services", "Novell Storage Services (NSS) volume", false)]
     public const byte NovellStorageServices = 0x69;
 
     /// <summary>
     /// DiskSecure multiboot
     /// </summary>
+    [PartitionTypeDescription("DiskSecure Multi-Boot", "DiskSecure multiboot partition", false)]
     public const byte DiskSecureMultiBoot = 0x70;
 
     /// <summary>
     /// APTI alternative FAT12 (CHS, SFN) / V7/x86 (Unix Version 7)
     /// </summary>
+    [PartitionTypeDescription("APTI FAT12 (CHS)", "APTI alternative FAT12 with CHS addressing and short file names", false)]
+    [PartitionTypeDescription("V7/x86", "Unix Version 7 for x86", false)]
     public const byte AptiFat12 = 0x72;
 
     /// <summary>
     /// Scramdisk partition
     /// </summary>
+    [PartitionTypeDescription("Scramdisk", "Scramdisk encrypted partition", false)]
     public const byte Scramdisk = 0x74;
 
     /// <summary>
     /// IBM PC/IX
     /// </summary>
+    [PartitionTypeDescription("IBM PC/IX", "IBM PC/IX Unix partition", false)]
     public const byte IbmPcIx = 0x75;
 
     /// <summary>
     /// VNDI / M2FS / M2CS partition
     /// </summary>
+    [PartitionTypeDescription("VNDI", "VNDI, M2FS or M2CS partition", false)]
     public const byte Vndi = 0x77;
 
     /// <summary>
     /// XOSL bootloader file system
     /// </summary>
+    [PartitionTypeDescription("XOSL", "XOSL bootloader file system", false)]
     public const byte Xosl = 0x78;
 
     /// <summary>
     /// APTI alternative FAT16 (CHS, SFN)
     /// </summary>
+    [PartitionTypeDescription("APTI FAT16 (CHS)", "APTI alternative FAT16 with CHS addressing and short file names", false)]
     public const byte AptiFat16 = 0x79;
 
     /// <summary>
     /// APTI alternative FAT16 (LBA, SFN)
     /// </summary>
+    [PartitionTypeDescription("APTI FAT16 (LBA)", "APTI alternative FAT16 with LBA addressing and short file names", false)]
     public const byte AptiFat16Lba = 0x7A;
 
     /// <summary>
     /// APTI alternative FAT16B (CHS, SFN)
     /// </summary>
+    [PartitionTypeDescription("APTI FAT16B (CHS)", "APTI alternative FAT16B with CHS addressing and short file names", false)]
     public const byte AptiFat16B = 0x7B;
 
     /// <summary>
     /// APTI alternative FAT32 (LBA, SFN)
     /// </summary>
+    [PartitionTypeDescription("APTI FAT32 (LBA)", "APTI alternative FAT32 with LBA addressing and short file names", false)]
     public const byte AptiFat32Lba = 0x7C;
 
     /// <summary>
     /// APTI alternative FAT32 (CHS, SFN)
     /// </summary>
+    [PartitionTypeDescription("APTI FAT32 (CHS)", "APTI alternative FAT32 with CHS addressing and short file names", false)]
     public const byte AptiFat32Chs = 0x7D;
 
     /// <summary>
     /// F.I.X. / Clarion
     /// </summary>
+    [PartitionTypeDescription("F.I.X.", "F.I.X. partition", false)]
+    [PartitionTypeDescription("Clarion", "Clarion partition", false)]
     public const byte Fix = 0x7E;
 
     /// <summary>
     /// Reserved for individual or local use and temporary or experimental projects (Alt-OS-Dev Partition Standard)
     /// </summary>
+    [PartitionTypeDescription("Experimental (Alt-OS-Dev)", "Reserved for individual or local use and for temporary or experimental projects", false)]
     public const byte AltOsDevExperimental = 0x7F;
 
     // ---------------------------------------------------------------------
@@ -489,141 +623,176 @@ public static class MbrPartitionTypes
     /// <summary>
     /// MINIX file system (old, until MINIX 1.4a)
     /// </summary>
+    [PartitionTypeDescription("MINIX (Old)", "MINIX file system used until MINIX 1.4a", false)]
     public const byte MinixOld = 0x80;
 
     /// <summary>
     /// MINIX file system (MINIX 1.4b and later) / early Linux / Mitac Advanced Disk Manager
     /// </summary>
+    [PartitionTypeDescription("MINIX", "MINIX file system from MINIX 1.4b onwards", true)]
+    [PartitionTypeDescription("Early Linux", "Early Linux native partition", false)]
+    [PartitionTypeDescription("Mitac Advanced Disk Manager", "Mitac Advanced Disk Manager partition", false)]
     public const byte Minix = 0x81;
 
     /// <summary>
     /// Linux swap space / Solaris x86 (until Solaris 8)
     /// </summary>
+    [PartitionTypeDescription("Linux Swap", "Linux swap space", true)]
+    [PartitionTypeDescription("Solaris x86 (Legacy)", "Solaris x86 up to Solaris 8", false)]
     public const byte LinuxSwap = 0x82;
 
     /// <summary>
     /// Linux native file system (ext2/3/4, xfs, btrfs, ReiserFS, ...)
     /// </summary>
+    [PartitionTypeDescription("Linux Filesystem", "Linux native file system such as ext2, ext3, ext4, xfs, btrfs or ReiserFS", true)]
     public const byte LinuxNative = 0x83;
 
     /// <summary>
     /// Hibernation (APM/Intel/Toshiba/Phoenix "Save to Disk") / OS/2 hidden C: drive
     /// </summary>
+    [PartitionTypeDescription("Hibernation", "APM, Intel, Toshiba or Phoenix Save to Disk hibernation partition", false)]
+    [PartitionTypeDescription("OS/2 Hidden C:", "OS/2 hidden C: drive", false)]
     public const byte Hibernation = 0x84;
 
     /// <summary>
     /// Linux extended partition
     /// </summary>
+    [PartitionTypeDescription("Linux Extended", "Linux extended partition", true)]
     public const byte LinuxExtended = 0x85;
 
     /// <summary>
     /// Legacy fault-tolerant FAT16B volume set (Windows NT 4 and earlier) / Linux RAID superblock with persistent superblock (old)
     /// </summary>
+    [PartitionTypeDescription("Fault-Tolerant FAT16B Set", "Legacy fault-tolerant FAT16B volume set on Windows NT 4 and earlier", false)]
+    [PartitionTypeDescription("Linux RAID (Old)", "Linux RAID with an old persistent superblock", false)]
     public const byte LegacyFaultTolerantFat16B = 0x86;
 
     /// <summary>
     /// Legacy fault-tolerant NTFS volume set (Windows NT 4 and earlier)
     /// </summary>
+    [PartitionTypeDescription("Fault-Tolerant NTFS Set", "Legacy fault-tolerant NTFS volume set on Windows NT 4 and earlier", false)]
     public const byte LegacyFaultTolerantNtfs = 0x87;
 
     /// <summary>
     /// Linux plaintext partition table
     /// </summary>
+    [PartitionTypeDescription("Linux Plaintext Table", "Linux plaintext partition table", false)]
     public const byte LinuxPlaintext = 0x88;
 
     /// <summary>
     /// Linux kernel image (AiR-BOOT)
     /// </summary>
+    [PartitionTypeDescription("Linux Kernel Image", "Linux kernel image used by AiR-BOOT", false)]
     public const byte LinuxKernelImage = 0x8A;
 
     /// <summary>
     /// Legacy fault-tolerant FAT32 volume set
     /// </summary>
+    [PartitionTypeDescription("Fault-Tolerant FAT32 Set", "Legacy fault-tolerant FAT32 volume set", false)]
     public const byte LegacyFaultTolerantFat32 = 0x8B;
 
     /// <summary>
     /// Legacy fault-tolerant FAT32 volume set using BIOS extensions (LBA)
     /// </summary>
+    [PartitionTypeDescription("Fault-Tolerant FAT32 Set (LBA)", "Legacy fault-tolerant FAT32 volume set using BIOS LBA extensions", false)]
     public const byte LegacyFaultTolerantFat32Lba = 0x8C;
 
     /// <summary>
     /// Hidden FAT12 (FreeDOS)
     /// </summary>
+    [PartitionTypeDescription("Hidden FAT12 (FreeDOS)", "FAT12 volume hidden by FreeDOS", false)]
     public const byte FreeDosHiddenFat12 = 0x8D;
 
     /// <summary>
     /// Linux LVM physical volume
     /// </summary>
+    [PartitionTypeDescription("Linux LVM", "Linux LVM physical volume", true)]
     public const byte LinuxLvm = 0x8E;
 
     /// <summary>
     /// Hidden FAT16 (FreeDOS)
     /// </summary>
+    [PartitionTypeDescription("Hidden FAT16 (FreeDOS)", "FAT16 volume hidden by FreeDOS", false)]
     public const byte FreeDosHiddenFat16 = 0x90;
 
     /// <summary>
     /// Hidden extended partition with CHS addressing (FreeDOS)
     /// </summary>
+    [PartitionTypeDescription("Hidden Extended CHS (FreeDOS)", "Extended partition with CHS addressing hidden by FreeDOS", false)]
     public const byte FreeDosHiddenExtendedChs = 0x91;
 
     /// <summary>
     /// Hidden FAT16B (FreeDOS)
     /// </summary>
+    [PartitionTypeDescription("Hidden FAT16B (FreeDOS)", "FAT16B volume hidden by FreeDOS", false)]
     public const byte FreeDosHiddenFat16B = 0x92;
 
     /// <summary>
     /// Hidden Linux native file system / Amoeba native file system
     /// </summary>
+    [PartitionTypeDescription("Amoeba Filesystem", "Amoeba native file system", false)]
+    [PartitionTypeDescription("Hidden Linux Filesystem", "Hidden Linux native file system", false)]
     public const byte AmoebaNative = 0x93;
 
     /// <summary>
     /// Amoeba bad block table
     /// </summary>
+    [PartitionTypeDescription("Amoeba Bad Block Table", "Amoeba bad block table", false)]
     public const byte AmoebaBadBlockTable = 0x94;
 
     /// <summary>
     /// EXOPC native
     /// </summary>
+    [PartitionTypeDescription("EXOPC Native", "EXOPC native partition", false)]
     public const byte ExopcNative = 0x95;
 
     /// <summary>
     /// ISO-9660 file system
     /// </summary>
+    [PartitionTypeDescription("ISO 9660", "ISO 9660 file system", false)]
     public const byte Iso9660 = 0x96;
 
     /// <summary>
     /// Hidden FAT32 (FreeDOS)
     /// </summary>
+    [PartitionTypeDescription("Hidden FAT32 (FreeDOS)", "FAT32 volume hidden by FreeDOS", false)]
     public const byte FreeDosHiddenFat32 = 0x97;
 
     /// <summary>
     /// Hidden FAT32 with LBA addressing (FreeDOS) / service partition (bootable FAT, ROM-DOS SuperBoot)
     /// </summary>
+    [PartitionTypeDescription("Hidden FAT32 LBA (FreeDOS)", "FAT32 volume with LBA addressing hidden by FreeDOS", false)]
+    [PartitionTypeDescription("Service Partition", "Bootable FAT service partition such as ROM-DOS SuperBoot", false)]
     public const byte FreeDosHiddenFat32Lba = 0x98;
 
     /// <summary>
     /// DCE376 logical drive (Mylex)
     /// </summary>
+    [PartitionTypeDescription("DCE376 Logical Drive", "Mylex DCE376 logical drive", false)]
     public const byte Dce376LogicalDrive = 0x99;
 
     /// <summary>
     /// Hidden FAT16B with LBA addressing (FreeDOS)
     /// </summary>
+    [PartitionTypeDescription("Hidden FAT16B LBA (FreeDOS)", "FAT16B volume with LBA addressing hidden by FreeDOS", false)]
     public const byte FreeDosHiddenFat16BLba = 0x9A;
 
     /// <summary>
     /// Hidden extended partition with LBA addressing (FreeDOS)
     /// </summary>
+    [PartitionTypeDescription("Hidden Extended LBA (FreeDOS)", "Extended partition with LBA addressing hidden by FreeDOS", false)]
     public const byte FreeDosHiddenExtendedLba = 0x9B;
 
     /// <summary>
     /// ForthOS (Forth Operating System)
     /// </summary>
+    [PartitionTypeDescription("ForthOS", "Forth Operating System partition", false)]
     public const byte ForthOs = 0x9E;
 
     /// <summary>
     /// BSD/OS 3.0+, BSDI
     /// </summary>
+    [PartitionTypeDescription("BSD/OS", "BSD/OS 3.0 or later, formerly BSDI", false)]
     public const byte BsdOs = 0x9F;
 
     // ---------------------------------------------------------------------
@@ -633,116 +802,151 @@ public static class MbrPartitionTypes
     /// <summary>
     /// Diagnostic partition for HP laptops / hibernate partition (Phoenix NoteBIOS "Save to Disk")
     /// </summary>
+    [PartitionTypeDescription("Laptop Hibernation", "Phoenix NoteBIOS Save to Disk hibernation partition", false)]
+    [PartitionTypeDescription("HP Diagnostic Partition", "Diagnostic partition for HP laptops", false)]
     public const byte LaptopHibernation = 0xA0;
 
     /// <summary>
     /// HP Volume Expansion (SpeedStor) / hibernate partition (some laptops)
     /// </summary>
+    [PartitionTypeDescription("HP Volume Expansion", "HP Volume Expansion (SpeedStor) partition", false)]
+    [PartitionTypeDescription("Laptop Hibernation", "Hibernation partition used by some laptops", false)]
     public const byte HpVolumeExpansionA1 = 0xA1;
 
     /// <summary>
     /// HP Volume Expansion (SpeedStor)
     /// </summary>
+    [PartitionTypeDescription("HP Volume Expansion", "HP Volume Expansion (SpeedStor) partition", false)]
     public const byte HpVolumeExpansionA3 = 0xA3;
 
     /// <summary>
     /// HP Volume Expansion (SpeedStor)
     /// </summary>
+    [PartitionTypeDescription("HP Volume Expansion", "HP Volume Expansion (SpeedStor) partition", false)]
     public const byte HpVolumeExpansionA4 = 0xA4;
 
     /// <summary>
     /// BSD slice (FreeBSD, BSD/386, 386BSD) with BSD disklabel
     /// </summary>
+    [PartitionTypeDescription("FreeBSD", "BSD slice with a BSD disklabel, used by FreeBSD, BSD/386 and 386BSD", true)]
     public const byte FreeBsdSlice = 0xA5;
 
     /// <summary>
     /// OpenBSD slice / HP Volume Expansion (SpeedStor)
     /// </summary>
+    [PartitionTypeDescription("OpenBSD", "OpenBSD slice with a BSD disklabel", true)]
+    [PartitionTypeDescription("HP Volume Expansion", "HP Volume Expansion (SpeedStor) partition", false)]
     public const byte OpenBsdSlice = 0xA6;
 
     /// <summary>
     /// NeXTSTEP
     /// </summary>
+    [PartitionTypeDescription("NeXTSTEP", "NeXTSTEP partition", false)]
     public const byte NextStep = 0xA7;
 
     /// <summary>
     /// Apple Darwin, macOS UFS (previously named Apple UNIX SVR2)
     /// </summary>
+    [PartitionTypeDescription("Apple UFS", "Apple Darwin and macOS UFS volume, formerly named Apple UNIX SVR2", false)]
     public const byte AppleUfs = 0xA8;
 
     /// <summary>
     /// NetBSD slice
     /// </summary>
+    [PartitionTypeDescription("NetBSD", "NetBSD slice with a BSD disklabel", true)]
     public const byte NetBsdSlice = 0xA9;
 
     /// <summary>
     /// Olivetti MS-DOS FAT12 (1.44 MB) / MacOS X Server internal
     /// </summary>
+    [PartitionTypeDescription("Olivetti FAT12", "Olivetti MS-DOS FAT12 1.44 MB partition", false)]
+    [PartitionTypeDescription("Mac OS X Server Internal", "Mac OS X Server internal partition", false)]
     public const byte OlivettiFat12 = 0xAA;
 
     /// <summary>
     /// Apple Darwin, macOS boot partition
     /// </summary>
+    [PartitionTypeDescription("Apple Boot", "Apple Darwin and macOS boot partition", false)]
     public const byte AppleBoot = 0xAB;
 
     /// <summary>
     /// Apple HFS, HFS+
     /// </summary>
+    [PartitionTypeDescription("Apple HFS/HFS+", "Apple HFS or HFS+ volume", true)]
     public const byte AppleHfs = 0xAF;
 
     /// <summary>
     /// Boot-Star dummy partition
     /// </summary>
+    [PartitionTypeDescription("Boot-Star Dummy", "Boot-Star dummy partition", false)]
     public const byte BootStarDummy = 0xB0;
 
     /// <summary>
     /// QNX 6.x (Neutrino) power-safe file system / HP Volume Expansion (SpeedStor)
     /// </summary>
+    [PartitionTypeDescription("QNX Power-Safe", "QNX 6.x Neutrino power-safe file system", false)]
+    [PartitionTypeDescription("HP Volume Expansion", "HP Volume Expansion (SpeedStor) partition", false)]
     public const byte QnxNeutrinoPowerSafe = 0xB1;
 
     /// <summary>
     /// QNX 6.x (Neutrino) power-safe file system / HP Volume Expansion (SpeedStor)
     /// </summary>
+    [PartitionTypeDescription("QNX Power-Safe", "QNX 6.x Neutrino power-safe file system", false)]
+    [PartitionTypeDescription("HP Volume Expansion", "HP Volume Expansion (SpeedStor) partition", false)]
     public const byte QnxNeutrinoPowerSafe2 = 0xB2;
 
     /// <summary>
     /// QNX 6.x (Neutrino) power-safe file system / HP Volume Expansion (SpeedStor)
     /// </summary>
+    [PartitionTypeDescription("QNX Power-Safe", "QNX 6.x Neutrino power-safe file system", false)]
+    [PartitionTypeDescription("HP Volume Expansion", "HP Volume Expansion (SpeedStor) partition", false)]
     public const byte QnxNeutrinoPowerSafe3 = 0xB3;
 
     /// <summary>
     /// BSDI native file system / swap (obsolete) / HP Volume Expansion (SpeedStor)
     /// </summary>
+    [PartitionTypeDescription("BSDI Filesystem", "BSDI native file system, obsolete", false)]
+    [PartitionTypeDescription("BSDI Swap", "BSDI swap partition, obsolete", false)]
+    [PartitionTypeDescription("HP Volume Expansion", "HP Volume Expansion (SpeedStor) partition", false)]
     public const byte BsdiNative = 0xB7;
 
     /// <summary>
     /// BSDI swap / native file system (obsolete)
     /// </summary>
+    [PartitionTypeDescription("BSDI Swap", "BSDI swap partition, obsolete", false)]
+    [PartitionTypeDescription("BSDI Filesystem", "BSDI native file system, obsolete", false)]
     public const byte BsdiSwap = 0xB8;
 
     /// <summary>
     /// Boot Wizard hidden / Acronis OEM Secure Zone / BootIt EMBRM hidden
     /// </summary>
+    [PartitionTypeDescription("Boot Wizard Hidden", "Partition hidden by Boot Wizard", false)]
+    [PartitionTypeDescription("Acronis Secure Zone", "Acronis OEM Secure Zone", false)]
+    [PartitionTypeDescription("BootIt EMBRM Hidden", "Hidden BootIt EMBRM partition", false)]
     public const byte BootWizardHidden = 0xBB;
 
     /// <summary>
     /// Backup Capsule (Acronis True Image / Paragon Backup)
     /// </summary>
+    [PartitionTypeDescription("Backup Capsule", "Acronis True Image or Paragon Backup capsule", false)]
     public const byte AcronisBackupCapsule = 0xBC;
 
     /// <summary>
     /// BonnyDOS/286
     /// </summary>
+    [PartitionTypeDescription("BonnyDOS/286", "BonnyDOS/286 partition", false)]
     public const byte BonnyDos286 = 0xBD;
 
     /// <summary>
     /// Solaris 8 boot partition
     /// </summary>
+    [PartitionTypeDescription("Solaris Boot", "Solaris 8 boot partition", false)]
     public const byte SolarisBoot = 0xBE;
 
     /// <summary>
     /// Solaris x86 (Solaris 10 and later)
     /// </summary>
+    [PartitionTypeDescription("Solaris", "Solaris x86 partition, Solaris 10 and later", true)]
     public const byte Solaris = 0xBF;
 
     // ---------------------------------------------------------------------
@@ -752,136 +956,173 @@ public static class MbrPartitionTypes
     /// <summary>
     /// CTOS / REAL/32 secure small partition / NTFT partition / DR DOS 7.06+ hidden FAT12
     /// </summary>
+    [PartitionTypeDescription("REAL/32 Secure Small", "REAL/32 secure small partition", false)]
+    [PartitionTypeDescription("CTOS", "CTOS partition", false)]
+    [PartitionTypeDescription("NTFT", "Windows NT fault tolerant (NTFT) partition", false)]
+    [PartitionTypeDescription("DR-DOS Hidden FAT12", "DR-DOS 7.06 and later hidden FAT12", false)]
     public const byte SecuredSmall = 0xC0;
 
     /// <summary>
     /// DR DOS 6.0+ secured FAT12
     /// </summary>
+    [PartitionTypeDescription("DR-DOS Secured FAT12", "DR-DOS 6.0 and later secured FAT12", false)]
     public const byte DrDosSecuredFat12 = 0xC1;
 
     /// <summary>
     /// Hidden Linux native file system (Power Boot)
     /// </summary>
+    [PartitionTypeDescription("Hidden Linux Filesystem", "Linux native file system hidden by Power Boot", false)]
     public const byte HiddenLinuxNative = 0xC2;
 
     /// <summary>
     /// Hidden Linux swap (Power Boot)
     /// </summary>
+    [PartitionTypeDescription("Hidden Linux Swap", "Linux swap hidden by Power Boot", false)]
     public const byte HiddenLinuxSwap = 0xC3;
 
     /// <summary>
     /// DR DOS 6.0+ secured FAT16 with less than 65536 sectors
     /// </summary>
+    [PartitionTypeDescription("DR-DOS Secured FAT16", "DR-DOS 6.0 and later secured FAT16 with fewer than 65536 sectors", false)]
     public const byte DrDosSecuredFat16 = 0xC4;
 
     /// <summary>
     /// DR DOS 6.0+ secured extended partition with CHS addressing
     /// </summary>
+    [PartitionTypeDescription("DR-DOS Secured Extended (CHS)", "DR-DOS 6.0 and later secured extended partition with CHS addressing", false)]
     public const byte DrDosSecuredExtendedChs = 0xC5;
 
     /// <summary>
     /// DR DOS 6.0+ secured FAT16B / Windows NT corrupted FAT16 volume/stripe set
     /// </summary>
+    [PartitionTypeDescription("DR-DOS Secured FAT16B", "DR-DOS 6.0 and later secured FAT16B", false)]
+    [PartitionTypeDescription("Corrupted FAT16 Volume Set", "Windows NT corrupted FAT16 volume or stripe set", false)]
     public const byte DrDosSecuredFat16B = 0xC6;
 
     /// <summary>
     /// Windows NT corrupted NTFS volume/stripe set / Syrinx boot
     /// </summary>
+    [PartitionTypeDescription("Corrupted NTFS Volume Set", "Windows NT corrupted NTFS volume or stripe set", false)]
+    [PartitionTypeDescription("Syrinx Boot", "Syrinx boot partition", false)]
     public const byte CorruptedNtfsVolumeSet = 0xC7;
 
     /// <summary>
     /// Reserved for DR DOS 7.0x secured partition
     /// </summary>
+    [PartitionTypeDescription("DR-DOS Reserved", "Reserved for DR-DOS 7.0x secured partitions", false)]
     public const byte DrDosReservedC8 = 0xC8;
 
     /// <summary>
     /// Reserved for DR DOS 7.0x secured partition
     /// </summary>
+    [PartitionTypeDescription("DR-DOS Reserved", "Reserved for DR-DOS 7.0x secured partitions", false)]
     public const byte DrDosReservedC9 = 0xC9;
 
     /// <summary>
     /// Reserved for DR DOS 7.0x secured partition
     /// </summary>
+    [PartitionTypeDescription("DR-DOS Reserved", "Reserved for DR-DOS 7.0x secured partitions", false)]
     public const byte DrDosReservedCa = 0xCA;
 
     /// <summary>
     /// DR DOS 7.0x secured FAT32 with CHS addressing
     /// </summary>
+    [PartitionTypeDescription("DR-DOS Secured FAT32 (CHS)", "DR-DOS 7.0x secured FAT32 with CHS addressing", false)]
     public const byte DrDosSecuredFat32Chs = 0xCB;
 
     /// <summary>
     /// DR DOS 7.0x secured FAT32 with LBA addressing
     /// </summary>
+    [PartitionTypeDescription("DR-DOS Secured FAT32 (LBA)", "DR-DOS 7.0x secured FAT32 with LBA addressing", false)]
     public const byte DrDosSecuredFat32Lba = 0xCC;
 
     /// <summary>
     /// CTOS memory dump
     /// </summary>
+    [PartitionTypeDescription("CTOS Memory Dump", "CTOS memory dump partition", false)]
     public const byte CtosMemoryDump = 0xCD;
 
     /// <summary>
     /// DR DOS 7.0x secured FAT16B with LBA addressing
     /// </summary>
+    [PartitionTypeDescription("DR-DOS Secured FAT16B (LBA)", "DR-DOS 7.0x secured FAT16B with LBA addressing", false)]
     public const byte DrDosSecuredFat16BLba = 0xCE;
 
     /// <summary>
     /// DR DOS 7.0x secured extended partition with LBA addressing
     /// </summary>
+    [PartitionTypeDescription("DR-DOS Secured Extended (LBA)", "DR-DOS 7.0x secured extended partition with LBA addressing", false)]
     public const byte DrDosSecuredExtendedLba = 0xCF;
 
     /// <summary>
     /// REAL/32 secure big partition / Multiuser DOS secured partition
     /// </summary>
+    [PartitionTypeDescription("REAL/32 Secure Big", "REAL/32 secure big partition", false)]
+    [PartitionTypeDescription("Multiuser DOS Secured", "Multiuser DOS secured partition", false)]
     public const byte SecuredBig = 0xD0;
 
     /// <summary>
     /// Multiuser DOS secured FAT12
     /// </summary>
+    [PartitionTypeDescription("Multiuser DOS Secured FAT12", "Multiuser DOS secured FAT12", false)]
     public const byte MultiuserDosSecuredFat12 = 0xD1;
 
     /// <summary>
     /// Multiuser DOS secured FAT16 with less than 65536 sectors
     /// </summary>
+    [PartitionTypeDescription("Multiuser DOS Secured FAT16", "Multiuser DOS secured FAT16 with fewer than 65536 sectors", false)]
     public const byte MultiuserDosSecuredFat16 = 0xD4;
 
     /// <summary>
     /// Multiuser DOS secured extended partition with CHS addressing
     /// </summary>
+    [PartitionTypeDescription("Multiuser DOS Secured Ext (CHS)", "Multiuser DOS secured extended partition with CHS addressing", false)]
     public const byte MultiuserDosSecuredExtendedChs = 0xD5;
 
     /// <summary>
     /// Multiuser DOS secured FAT16B
     /// </summary>
+    [PartitionTypeDescription("Multiuser DOS Secured FAT16B", "Multiuser DOS secured FAT16B", false)]
     public const byte MultiuserDosSecuredFat16B = 0xD6;
 
     /// <summary>
     /// CP/M-86
     /// </summary>
+    [PartitionTypeDescription("CP/M-86", "CP/M-86 partition", false)]
     public const byte CpM86 = 0xD8;
 
     /// <summary>
     /// Non-file system data / Powercopy Backup
     /// </summary>
+    [PartitionTypeDescription("Non-Filesystem Data", "Raw data that holds no file system", false)]
+    [PartitionTypeDescription("Powercopy Backup", "Powercopy Backup partition", false)]
     public const byte NonFileSystemData = 0xDA;
 
     /// <summary>
     /// Digital Research CP/M-86, Concurrent CP/M-86, Concurrent DOS / CTOS / KDG Telemetry SCPU boot
     /// </summary>
+    [PartitionTypeDescription("Concurrent DOS", "Digital Research CP/M-86, Concurrent CP/M-86 or Concurrent DOS", false)]
+    [PartitionTypeDescription("CTOS", "CTOS partition", false)]
+    [PartitionTypeDescription("KDG Telemetry SCPU Boot", "KDG Telemetry SCPU boot partition", false)]
     public const byte ConcurrentDos = 0xDB;
 
     /// <summary>
     /// Hidden CTOS memory dump
     /// </summary>
+    [PartitionTypeDescription("Hidden CTOS Memory Dump", "Hidden CTOS memory dump partition", false)]
     public const byte HiddenCtosMemoryDump = 0xDD;
 
     /// <summary>
     /// Dell diagnostic and utility partition (FAT16)
     /// </summary>
+    [PartitionTypeDescription("Dell Utility Partition", "Dell diagnostic and utility partition using FAT16", false)]
     public const byte DellUtilityPartition = 0xDE;
 
     /// <summary>
     /// BootIt EMBRM (FAT12/16/32) / DG/UX virtual disk manager
     /// </summary>
+    [PartitionTypeDescription("BootIt EMBRM", "BootIt EMBRM partition holding FAT12, FAT16 or FAT32", false)]
+    [PartitionTypeDescription("DG/UX Virtual Disk Manager", "DG/UX virtual disk manager partition", false)]
     public const byte BootItEmbrm = 0xDF;
 
     // ---------------------------------------------------------------------
@@ -891,130 +1132,165 @@ public static class MbrPartitionTypes
     /// <summary>
     /// ST AVFS (STMicroelectronics)
     /// </summary>
+    [PartitionTypeDescription("ST AVFS", "STMicroelectronics ST AVFS partition", false)]
     public const byte StAvfs = 0xE0;
 
     /// <summary>
     /// SpeedStor 12-bit FAT extended partition
     /// </summary>
+    [PartitionTypeDescription("SpeedStor FAT12 Extended", "SpeedStor 12-bit FAT extended partition", false)]
     public const byte SpeedStorFat12Extended = 0xE1;
 
     /// <summary>
     /// DOS read-only (XFDISK)
     /// </summary>
+    [PartitionTypeDescription("DOS Read-Only", "DOS read-only partition created by XFDISK", false)]
     public const byte DosReadOnly = 0xE3;
 
     /// <summary>
     /// SpeedStor 16-bit FAT extended partition with less than 1024 cylinders
     /// </summary>
+    [PartitionTypeDescription("SpeedStor FAT16 Extended", "SpeedStor 16-bit FAT extended partition with fewer than 1024 cylinders", false)]
     public const byte SpeedStorFat16Extended = 0xE4;
 
     /// <summary>
     /// Tandy MS-DOS with logical sectored FAT
     /// </summary>
+    [PartitionTypeDescription("Tandy DOS Sectored FAT", "Tandy MS-DOS with logical sectored FAT", false)]
     public const byte TandyDosLogicalSectoredFat = 0xE5;
 
     /// <summary>
     /// Linux Unified Key Setup (LUKS) encrypted partition
     /// </summary>
+    [PartitionTypeDescription("Linux LUKS", "Linux Unified Key Setup encrypted partition", true)]
     public const byte Luks = 0xE8;
 
     /// <summary>
     /// Rufus extra partition (alignment) / Freedesktop boot
     /// </summary>
+    [PartitionTypeDescription("Rufus Extra", "Rufus extra partition used for alignment", false)]
+    [PartitionTypeDescription("Freedesktop Boot", "Freedesktop boot partition", false)]
     public const byte RufusExtra = 0xEA;
 
     /// <summary>
     /// BeOS, Haiku BFS
     /// </summary>
+    [PartitionTypeDescription("BeOS/Haiku BFS", "BeOS or Haiku BFS volume", false)]
     public const byte Bfs = 0xEB;
 
     /// <summary>
     /// SkyOS SkyFS
     /// </summary>
+    [PartitionTypeDescription("SkyOS SkyFS", "SkyOS SkyFS volume", false)]
     public const byte SkyFs = 0xEC;
 
     /// <summary>
     /// Sprytix EDC loader / GPT hybrid MBR
     /// </summary>
+    [PartitionTypeDescription("GPT Hybrid MBR", "Hybrid MBR entry shadowing a GPT partition", false)]
+    [PartitionTypeDescription("Sprytix EDC Loader", "Sprytix EDC loader partition", false)]
     public const byte GptHybridMbr = 0xED;
 
     /// <summary>
     /// GPT protective MBR (indicates the disk uses a GUID Partition Table)
     /// </summary>
+    [PartitionTypeDescription("GPT Protective", "Protective MBR entry showing the disk uses a GUID Partition Table", true)]
     public const byte ProtectiveMbr = 0xEE;
 
     /// <summary>
     /// EFI System Partition (FAT12/16/32) declared in an MBR partition table
     /// </summary>
+    [PartitionTypeDescription("EFI System Partition", "EFI System Partition holding FAT12, FAT16 or FAT32, declared in an MBR partition table", true)]
     public const byte EfiSystemPartition = 0xEF;
 
     /// <summary>
     /// Linux/PA-RISC boot loader
     /// </summary>
+    [PartitionTypeDescription("Linux/PA-RISC Boot", "Linux PA-RISC boot loader partition", false)]
     public const byte LinuxPaRiscBoot = 0xF0;
 
     /// <summary>
     /// SpeedStor
     /// </summary>
+    [PartitionTypeDescription("SpeedStor", "SpeedStor partition", false)]
     public const byte SpeedStorF1 = 0xF1;
 
     /// <summary>
     /// DOS 3.3+ secondary partition
     /// </summary>
+    [PartitionTypeDescription("DOS Secondary", "DOS 3.3 and later secondary partition", false)]
     public const byte DosSecondary = 0xF2;
 
     /// <summary>
     /// SpeedStor / Prologue single-volume partition (ANSI)
     /// </summary>
+    [PartitionTypeDescription("SpeedStor Large", "SpeedStor large partition", false)]
+    [PartitionTypeDescription("Prologue Single-Volume", "Prologue single-volume partition (ANSI)", false)]
     public const byte SpeedStorLarge = 0xF4;
 
     /// <summary>
     /// Prologue multi-volume partition (MD0-MD9)
     /// </summary>
+    [PartitionTypeDescription("Prologue Multi-Volume", "Prologue multi-volume partition (MD0-MD9)", false)]
     public const byte PrologueMultiVolume = 0xF5;
 
     /// <summary>
     /// SpeedStor (reserved)
     /// </summary>
+    [PartitionTypeDescription("SpeedStor Reserved", "Reserved by SpeedStor", false)]
     public const byte SpeedStorF6 = 0xF6;
 
     /// <summary>
     /// DDRdrive Solid State File System / EFAT / X1
     /// </summary>
+    [PartitionTypeDescription("DDRdrive SSFS", "DDRdrive Solid State File System", false)]
+    [PartitionTypeDescription("EFAT", "EFAT partition", false)]
+    [PartitionTypeDescription("X1", "X1 partition", false)]
     public const byte DdrDriveSolidStateFileSystem = 0xF7;
 
     /// <summary>
     /// pCache (ext2/ext3 persistent cache)
     /// </summary>
+    [PartitionTypeDescription("pCache", "Persistent cache for ext2 or ext3", false)]
     public const byte PCache = 0xF9;
 
     /// <summary>
     /// Bochs x86 emulator
     /// </summary>
+    [PartitionTypeDescription("Bochs", "Bochs x86 emulator partition", false)]
     public const byte Bochs = 0xFA;
 
     /// <summary>
     /// VMware VMFS file system partition
     /// </summary>
+    [PartitionTypeDescription("VMware VMFS", "VMware VMFS file system partition", false)]
     public const byte VmwareVmfs = 0xFB;
 
     /// <summary>
     /// VMware swap / VMKCORE kernel dump partition
     /// </summary>
+    [PartitionTypeDescription("VMware VMKCORE", "VMware VMKCORE kernel dump partition", false)]
+    [PartitionTypeDescription("VMware Swap", "VMware swap partition", false)]
     public const byte VmwareVmkCore = 0xFC;
 
     /// <summary>
     /// Linux RAID superblock with auto-detect
     /// </summary>
+    [PartitionTypeDescription("Linux RAID Auto-Detect", "Linux RAID superblock with kernel auto-detection", true)]
     public const byte LinuxRaidAutoDetect = 0xFD;
 
     /// <summary>
     /// IBM PS/2 IML partition / hidden NTFS (Windows NT Disk Administrator) / LANstep / SpeedStor with more than 1024 cylinders
     /// </summary>
+    [PartitionTypeDescription("Hidden NTFS", "NTFS volume hidden by the Windows NT Disk Administrator", false)]
+    [PartitionTypeDescription("IBM PS/2 IML", "IBM PS/2 Initial Microcode Load partition", false)]
+    [PartitionTypeDescription("LANstep", "LANstep partition", false)]
+    [PartitionTypeDescription("SpeedStor Large", "SpeedStor with more than 1024 cylinders", false)]
     public const byte Ps2Iml = 0xFE;
 
     /// <summary>
     /// XENIX bad block table
     /// </summary>
+    [PartitionTypeDescription("XENIX Bad Block Table", "XENIX bad block table", false)]
     public const byte XenixBadBlockTable = 0xFF;
 }

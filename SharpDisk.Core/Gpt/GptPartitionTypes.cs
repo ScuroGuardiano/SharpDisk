@@ -1,3 +1,5 @@
+using SharpDisk.Core.Attributes;
+
 namespace SharpDisk.Core.Gpt;
 
 /// <summary>
@@ -12,36 +14,43 @@ public static class GptPartitionTypes
     /// <summary>
     /// Unused entry
     /// </summary>
+    [PartitionTypeDescription("Unused Entry", "Empty partition table entry, all-zero type GUID", false)]
     public static readonly Guid Unused = Guid.Empty;
 
     /// <summary>
     /// MBR partition scheme (legacy partition table nested inside GPT)
     /// </summary>
+    [PartitionTypeDescription("MBR Partition Scheme", "Legacy MBR partition table nested inside a GPT disk", false)]
     public static readonly Guid MbrPartitionScheme = new("024DEE41-33E7-11D3-9D69-0008C781F39F");
 
     /// <summary>
     /// EFI System Partition (ESP), FAT12/16/32
     /// </summary>
+    [PartitionTypeDescription("EFI System Partition", "FAT12/16/32 partition holding UEFI boot loaders and firmware files", true)]
     public static readonly Guid EfiSystemPartition = new("C12A7328-F81F-11D2-BA4B-00A0C93EC93B");
 
     /// <summary>
     /// BIOS boot partition (GRUB core image on BIOS/CSM systems). ASCII "Hah!IdontNeedEFI"
     /// </summary>
+    [PartitionTypeDescription("BIOS Boot Partition", "Holds the GRUB core image when booting a GPT disk on BIOS/CSM systems", true)]
     public static readonly Guid BiosBoot = new("21686148-6449-6E6F-744E-656564454649");
 
     /// <summary>
     /// Intel Fast Flash (iFFS) partition for Intel Rapid Start technology
     /// </summary>
+    [PartitionTypeDescription("Intel Fast Flash", "Intel Fast Flash (iFFS) partition used by Intel Rapid Start technology", false)]
     public static readonly Guid IntelFastFlash = new("D3BFE2DE-3DAF-11DF-BA40-E3A556D89593");
 
     /// <summary>
     /// Sony boot partition
     /// </summary>
+    [PartitionTypeDescription("Sony Boot Partition", "Vendor boot partition used on Sony systems", false)]
     public static readonly Guid SonyBoot = new("F4019732-066E-4E12-8273-346C5641494F");
 
     /// <summary>
     /// Lenovo boot partition
     /// </summary>
+    [PartitionTypeDescription("Lenovo Boot Partition", "Vendor boot partition used on Lenovo systems", false)]
     public static readonly Guid LenovoBoot = new("BFBFAFE7-A34F-448A-9A5B-6213EB736C22");
 
     // ---------------------------------------------------------------------
@@ -51,41 +60,49 @@ public static class GptPartitionTypes
     /// <summary>
     /// Microsoft Reserved Partition (MSR)
     /// </summary>
+    [PartitionTypeDescription("Microsoft Reserved", "Microsoft Reserved Partition (MSR) that reserves space for Windows disk operations", true)]
     public static readonly Guid MicrosoftReserved = new("E3C9E316-0B5C-4DB8-817D-F92DF00215AE");
 
     /// <summary>
     /// Basic data partition (NTFS, exFAT, FAT32, ReFS - Windows' generic data type; also used by Linux tools)
     /// </summary>
+    [PartitionTypeDescription("Microsoft Basic Data", "Generic Windows data partition holding NTFS, exFAT, FAT32 or ReFS, also used by Linux tools", true)]
     public static readonly Guid BasicData = new("EBD0A0A2-B9E5-4433-87C0-68B6B72699C7");
 
     /// <summary>
     /// Logical Disk Manager (LDM) metadata partition (dynamic disks)
     /// </summary>
+    [PartitionTypeDescription("LDM Metadata", "Logical Disk Manager metadata partition used by Windows dynamic disks", false)]
     public static readonly Guid LdmMetadata = new("5808C8AA-7E8F-42E0-85D2-E1E90434CFB3");
 
     /// <summary>
     /// Logical Disk Manager (LDM) data partition
     /// </summary>
+    [PartitionTypeDescription("LDM Data", "Logical Disk Manager data partition used by Windows dynamic disks", false)]
     public static readonly Guid LdmData = new("AF9B60A0-1431-4F62-BC68-3311714A69AD");
 
     /// <summary>
     /// Windows Recovery Environment (WinRE)
     /// </summary>
+    [PartitionTypeDescription("Windows Recovery Environment", "Holds the Windows Recovery Environment (WinRE) image", true)]
     public static readonly Guid WindowsRecoveryEnvironment = new("DE94BBA4-06D1-4D40-A16A-BFD50179D6AC");
 
     /// <summary>
     /// IBM General Parallel File System (GPFS) partition
     /// </summary>
+    [PartitionTypeDescription("IBM GPFS", "IBM General Parallel File System partition", false)]
     public static readonly Guid IbmGpfs = new("37AFFC90-EF7D-4E96-91C3-2D7AE055B174");
 
     /// <summary>
     /// Storage Spaces partition
     /// </summary>
+    [PartitionTypeDescription("Storage Spaces", "Partition claimed by Windows Storage Spaces", false)]
     public static readonly Guid StorageSpaces = new("E75CAF8F-F680-4CEE-AFA3-B001E56EFC2D");
 
     /// <summary>
     /// Storage Replica partition
     /// </summary>
+    [PartitionTypeDescription("Storage Replica", "Partition claimed by Windows Storage Replica", false)]
     public static readonly Guid StorageReplica = new("558D43C5-A1AC-43C0-AAC8-D1472B2923D1");
 
     // ---------------------------------------------------------------------
@@ -95,11 +112,13 @@ public static class GptPartitionTypes
     /// <summary>
     /// HP-UX data partition
     /// </summary>
+    [PartitionTypeDescription("HP-UX Data", "HP-UX data partition", false)]
     public static readonly Guid HpUxData = new("75894C1E-3AEB-11D3-B7C1-7B03A0000000");
 
     /// <summary>
     /// HP-UX service partition
     /// </summary>
+    [PartitionTypeDescription("HP-UX Service", "HP-UX service partition", false)]
     public static readonly Guid HpUxService = new("E2A1E728-32E3-11D6-A682-7B03A0000000");
 
     // ---------------------------------------------------------------------
@@ -109,66 +128,79 @@ public static class GptPartitionTypes
     /// <summary>
     /// Linux filesystem data (ext2/3/4, xfs, btrfs, ...)
     /// </summary>
+    [PartitionTypeDescription("Linux Filesystem", "Generic Linux filesystem data such as ext2/3/4, XFS or Btrfs", true)]
     public static readonly Guid LinuxFilesystemData = new("0FC63DAF-8483-4772-8E79-3D69D8477DE4");
 
     /// <summary>
     /// Linux RAID partition
     /// </summary>
+    [PartitionTypeDescription("Linux RAID", "Member partition of a Linux software RAID (md) array", true)]
     public static readonly Guid LinuxRaid = new("A19D880F-05FC-4D3B-A006-743F0F84911E");
 
     /// <summary>
     /// Linux swap partition
     /// </summary>
+    [PartitionTypeDescription("Linux Swap", "Linux swap area", true)]
     public static readonly Guid LinuxSwap = new("0657FD6D-A4AB-43C4-84E5-0933C84B4F4F");
 
     /// <summary>
     /// Linux LVM physical volume
     /// </summary>
+    [PartitionTypeDescription("Linux LVM", "Physical volume belonging to a Linux LVM volume group", true)]
     public static readonly Guid LinuxLvm = new("E6D6D379-F507-44C2-A23C-238F2A3DF928");
 
     /// <summary>
     /// Linux /home partition (Discoverable Partitions Specification)
     /// </summary>
+    [PartitionTypeDescription("Linux /home", "Discoverable /home partition per the Discoverable Partitions Specification", true)]
     public static readonly Guid LinuxHome = new("933AC7E1-2EB4-4F13-B844-0E14E2AEF915");
 
     /// <summary>
     /// Linux /srv (server data) partition
     /// </summary>
+    [PartitionTypeDescription("Linux /srv", "Discoverable /srv server data partition", true)]
     public static readonly Guid LinuxServerData = new("3B8F8425-20E0-4F3B-907F-1A25A76F98E8");
 
     /// <summary>
     /// Linux /var partition
     /// </summary>
+    [PartitionTypeDescription("Linux /var", "Discoverable /var partition per the Discoverable Partitions Specification", true)]
     public static readonly Guid LinuxVar = new("4D21B016-B534-45C2-A9FB-5C16E091FD2D");
 
     /// <summary>
     /// Linux /var/tmp partition
     /// </summary>
+    [PartitionTypeDescription("Linux /var/tmp", "Discoverable /var/tmp partition per the Discoverable Partitions Specification", false)]
     public static readonly Guid LinuxVarTmp = new("7EC6F557-3BC5-4ACA-B293-16EF5DF639D1");
 
     /// <summary>
     /// Linux per-user home partition (systemd-homed)
     /// </summary>
+    [PartitionTypeDescription("Linux Per-User Home", "Per-user home area managed by systemd-homed", false)]
     public static readonly Guid LinuxUserHome = new("773F91EF-66D4-49B5-BD83-D683BF40AD16");
 
     /// <summary>
     /// Linux plain dm-crypt partition
     /// </summary>
+    [PartitionTypeDescription("Linux dm-crypt", "Plain dm-crypt encrypted partition without a LUKS header", true)]
     public static readonly Guid LinuxDmCrypt = new("7FFEC5C9-2D00-49B7-8941-3EA10A5586B7");
 
     /// <summary>
     /// Linux Unified Key Setup (LUKS) partition
     /// </summary>
+    [PartitionTypeDescription("Linux LUKS", "Encrypted partition using the Linux Unified Key Setup format", true)]
     public static readonly Guid LinuxLuks = new("CA7D7CCB-63ED-4C53-861C-1742536059CC");
 
     /// <summary>
     /// Linux reserved
     /// </summary>
+    [PartitionTypeDescription("Linux Reserved", "Reserved by Linux for future use", false)]
     public static readonly Guid LinuxReserved = new("8DA63339-0007-60C0-C436-083AC8230908");
 
     /// <summary>
     /// Linux Extended Boot Loader partition (XBOOTLDR, Boot Loader Specification)
     /// </summary>
+    [PartitionTypeDescription("Linux Extended Boot (XBOOTLDR)", "Extended Boot Loader partition per the Boot Loader Specification", true)]
     public static readonly Guid LinuxExtendedBoot = new("BC13C2FF-59E6-4262-A352-B275FD6F7172");
 
     // ---------------------------------------------------------------------
@@ -178,46 +210,55 @@ public static class GptPartitionTypes
     /// <summary>
     /// Linux root partition (x86, 32-bit)
     /// </summary>
+    [PartitionTypeDescription("Linux Root (x86)", "Discoverable root partition for 32-bit x86", false)]
     public static readonly Guid LinuxRootX86 = new("44479540-F297-41B2-9AF7-D131D5F0458A");
 
     /// <summary>
     /// Linux root partition (x86-64)
     /// </summary>
+    [PartitionTypeDescription("Linux Root (x86-64)", "Discoverable root partition for x86-64", true)]
     public static readonly Guid LinuxRootX64 = new("4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709");
 
     /// <summary>
     /// Linux root partition (ARM 32-bit)
     /// </summary>
+    [PartitionTypeDescription("Linux Root (ARM 32-bit)", "Discoverable root partition for 32-bit ARM", false)]
     public static readonly Guid LinuxRootArm32 = new("69DAD710-2CE4-4E3C-B16C-21A1D49ABED3");
 
     /// <summary>
     /// Linux root partition (ARM 64-bit / AArch64)
     /// </summary>
+    [PartitionTypeDescription("Linux Root (ARM64)", "Discoverable root partition for 64-bit ARM (AArch64)", false)]
     public static readonly Guid LinuxRootArm64 = new("B921B045-1DF0-41C3-AF44-4C6F280D3FAE");
 
     /// <summary>
     /// Linux root partition (RISC-V 64-bit)
     /// </summary>
+    [PartitionTypeDescription("Linux Root (RISC-V 64)", "Discoverable root partition for 64-bit RISC-V", false)]
     public static readonly Guid LinuxRootRiscV64 = new("72EC70A6-CF74-40E6-BD49-4BDA08E8F224");
 
     /// <summary>
     /// Linux /usr partition (x86-64)
     /// </summary>
+    [PartitionTypeDescription("Linux /usr (x86-64)", "Discoverable /usr partition for x86-64", false)]
     public static readonly Guid LinuxUsrX64 = new("8484680C-9521-48C6-9C11-B0720656F69E");
 
     /// <summary>
     /// Linux /usr partition (ARM 64-bit / AArch64)
     /// </summary>
+    [PartitionTypeDescription("Linux /usr (ARM64)", "Discoverable /usr partition for 64-bit ARM (AArch64)", false)]
     public static readonly Guid LinuxUsrArm64 = new("B0E01050-EE5F-4390-949A-9101B17104E9");
 
     /// <summary>
     /// Linux root verity partition (dm-verity hashes, x86-64)
     /// </summary>
+    [PartitionTypeDescription("Linux Root Verity (x86-64)", "dm-verity hash tree protecting the x86-64 root partition", false)]
     public static readonly Guid LinuxRootVerityX64 = new("2C7357ED-EBD2-46D9-AEC1-23D437EC2BF5");
 
     /// <summary>
     /// Linux /usr verity partition (dm-verity hashes, x86-64)
     /// </summary>
+    [PartitionTypeDescription("Linux /usr Verity (x86-64)", "dm-verity hash tree protecting the x86-64 /usr partition", false)]
     public static readonly Guid LinuxUsrVerityX64 = new("77FF5F63-E7B6-4633-ACF4-1565B864C0E6");
 
     // ---------------------------------------------------------------------
@@ -227,36 +268,43 @@ public static class GptPartitionTypes
     /// <summary>
     /// FreeBSD boot partition
     /// </summary>
+    [PartitionTypeDescription("FreeBSD Boot", "FreeBSD boot partition holding the gptboot loader", false)]
     public static readonly Guid FreeBsdBoot = new("83BD6B9D-7F41-11DC-BE0B-001560B84F0F");
 
     /// <summary>
     /// FreeBSD BSD disklabel partition
     /// </summary>
+    [PartitionTypeDescription("FreeBSD Disklabel", "FreeBSD BSD disklabel partition subdividing the slice", false)]
     public static readonly Guid FreeBsdDisklabel = new("516E7CB4-6ECF-11D6-8FF8-00022D09712B");
 
     /// <summary>
     /// FreeBSD swap partition
     /// </summary>
+    [PartitionTypeDescription("FreeBSD Swap", "FreeBSD swap area", true)]
     public static readonly Guid FreeBsdSwap = new("516E7CB5-6ECF-11D6-8FF8-00022D09712B");
 
     /// <summary>
     /// FreeBSD UFS partition
     /// </summary>
+    [PartitionTypeDescription("FreeBSD UFS", "FreeBSD UFS filesystem partition", true)]
     public static readonly Guid FreeBsdUfs = new("516E7CB6-6ECF-11D6-8FF8-00022D09712B");
 
     /// <summary>
     /// FreeBSD Vinum volume manager partition
     /// </summary>
+    [PartitionTypeDescription("FreeBSD Vinum", "Member partition of a FreeBSD Vinum volume manager volume", false)]
     public static readonly Guid FreeBsdVinum = new("516E7CB8-6ECF-11D6-8FF8-00022D09712B");
 
     /// <summary>
     /// FreeBSD ZFS partition
     /// </summary>
+    [PartitionTypeDescription("FreeBSD ZFS", "FreeBSD ZFS pool member partition", true)]
     public static readonly Guid FreeBsdZfs = new("516E7CBA-6ECF-11D6-8FF8-00022D09712B");
 
     /// <summary>
     /// FreeBSD nandfs partition
     /// </summary>
+    [PartitionTypeDescription("FreeBSD nandfs", "FreeBSD nandfs flash filesystem partition", false)]
     public static readonly Guid FreeBsdNandFs = new("74BA7DD9-A689-11E1-BD04-00E081286ACF");
 
     // ---------------------------------------------------------------------
@@ -266,51 +314,61 @@ public static class GptPartitionTypes
     /// <summary>
     /// Apple HFS+ partition
     /// </summary>
+    [PartitionTypeDescription("Apple HFS+", "Apple HFS+ (Mac OS Extended) filesystem partition", true)]
     public static readonly Guid AppleHfsPlus = new("48465300-0000-11AA-AA11-00306543ECAC");
 
     /// <summary>
     /// Apple APFS container / FileVault volume container
     /// </summary>
+    [PartitionTypeDescription("Apple APFS", "Apple APFS container, also used for FileVault volume containers", true)]
     public static readonly Guid AppleApfs = new("7C3457EF-0000-11AA-AA11-00306543ECAC");
 
     /// <summary>
     /// Apple UFS container
     /// </summary>
+    [PartitionTypeDescription("Apple UFS", "Legacy Apple UFS container", false)]
     public static readonly Guid AppleUfs = new("55465300-0000-11AA-AA11-00306543ECAC");
 
     /// <summary>
     /// Apple ZFS partition (also Solaris /usr - GUID collision)
     /// </summary>
+    [PartitionTypeDescription("Apple ZFS", "Apple ZFS partition, sharing its GUID with Solaris /usr", false)]
     public static readonly Guid AppleZfs = new("6A898CC3-1DD2-11B2-99A6-080020736631");
 
     /// <summary>
     /// Apple RAID partition
     /// </summary>
+    [PartitionTypeDescription("Apple RAID", "Member partition of an Apple software RAID set", false)]
     public static readonly Guid AppleRaid = new("52414944-0000-11AA-AA11-00306543ECAC");
 
     /// <summary>
     /// Apple RAID partition, offline
     /// </summary>
+    [PartitionTypeDescription("Apple RAID Offline", "Apple software RAID member that is currently offline", false)]
     public static readonly Guid AppleRaidOffline = new("52414944-5F4F-11AA-AA11-00306543ECAC");
 
     /// <summary>
     /// Apple Boot partition (Recovery HD)
     /// </summary>
+    [PartitionTypeDescription("Apple Boot (Recovery HD)", "Apple Recovery HD boot partition", false)]
     public static readonly Guid AppleBoot = new("426F6F74-0000-11AA-AA11-00306543ECAC");
 
     /// <summary>
     /// Apple Label
     /// </summary>
+    [PartitionTypeDescription("Apple Label", "Apple Label partition", false)]
     public static readonly Guid AppleLabel = new("4C616265-6C00-11AA-AA11-00306543ECAC");
 
     /// <summary>
     /// Apple TV Recovery partition
     /// </summary>
+    [PartitionTypeDescription("Apple TV Recovery", "Recovery partition used by Apple TV", false)]
     public static readonly Guid AppleTvRecovery = new("5265636F-7665-11AA-AA11-00306543ECAC");
 
     /// <summary>
     /// Apple Core Storage container (HFS+ wrapper, FileVault 2)
     /// </summary>
+    [PartitionTypeDescription("Apple Core Storage", "Apple Core Storage container, the HFS+ wrapper used by FileVault 2", false)]
     public static readonly Guid AppleCoreStorage = new("53746F72-6167-11AA-AA11-00306543ECAC");
 
     // ---------------------------------------------------------------------
@@ -320,46 +378,55 @@ public static class GptPartitionTypes
     /// <summary>
     /// Solaris boot partition
     /// </summary>
+    [PartitionTypeDescription("Solaris Boot", "Solaris boot partition", false)]
     public static readonly Guid SolarisBoot = new("6A82CB45-1DD2-11B2-99A6-080020736631");
 
     /// <summary>
     /// Solaris root partition
     /// </summary>
+    [PartitionTypeDescription("Solaris Root", "Solaris root partition", false)]
     public static readonly Guid SolarisRoot = new("6A85CF4D-1DD2-11B2-99A6-080020736631");
 
     /// <summary>
     /// Solaris swap partition
     /// </summary>
+    [PartitionTypeDescription("Solaris Swap", "Solaris swap area", false)]
     public static readonly Guid SolarisSwap = new("6A87C46F-1DD2-11B2-99A6-080020736631");
 
     /// <summary>
     /// Solaris backup partition
     /// </summary>
+    [PartitionTypeDescription("Solaris Backup", "Solaris backup partition covering the whole disk", false)]
     public static readonly Guid SolarisBackup = new("6A8B642B-1DD2-11B2-99A6-080020736631");
 
     /// <summary>
     /// Solaris /usr partition (also Apple ZFS - GUID collision)
     /// </summary>
+    [PartitionTypeDescription("Solaris /usr", "Solaris /usr partition, sharing its GUID with Apple ZFS", false)]
     public static readonly Guid SolarisUsr = new("6A898CC3-1DD2-11B2-99A6-080020736631");
 
     /// <summary>
     /// Solaris /var partition
     /// </summary>
+    [PartitionTypeDescription("Solaris /var", "Solaris /var partition", false)]
     public static readonly Guid SolarisVar = new("6A8EF2E9-1DD2-11B2-99A6-080020736631");
 
     /// <summary>
     /// Solaris /home partition
     /// </summary>
+    [PartitionTypeDescription("Solaris /home", "Solaris /home partition", false)]
     public static readonly Guid SolarisHome = new("6A90BA39-1DD2-11B2-99A6-080020736631");
 
     /// <summary>
     /// Solaris alternate sector
     /// </summary>
+    [PartitionTypeDescription("Solaris Alternate Sector", "Solaris alternate sector area", false)]
     public static readonly Guid SolarisAlternateSector = new("6A9283A5-1DD2-11B2-99A6-080020736631");
 
     /// <summary>
     /// Solaris reserved partition
     /// </summary>
+    [PartitionTypeDescription("Solaris Reserved", "Reserved by Solaris for future use", false)]
     public static readonly Guid SolarisReserved = new("6A945A3B-1DD2-11B2-99A6-080020736631");
 
     // ---------------------------------------------------------------------
@@ -369,31 +436,37 @@ public static class GptPartitionTypes
     /// <summary>
     /// NetBSD swap partition
     /// </summary>
+    [PartitionTypeDescription("NetBSD Swap", "NetBSD swap area", false)]
     public static readonly Guid NetBsdSwap = new("49F48D32-B10E-11DC-B99B-0019D1879648");
 
     /// <summary>
     /// NetBSD FFS partition
     /// </summary>
+    [PartitionTypeDescription("NetBSD FFS", "NetBSD Fast File System partition", false)]
     public static readonly Guid NetBsdFfs = new("49F48D5A-B10E-11DC-B99B-0019D1879648");
 
     /// <summary>
     /// NetBSD LFS partition
     /// </summary>
+    [PartitionTypeDescription("NetBSD LFS", "NetBSD Log-structured File System partition", false)]
     public static readonly Guid NetBsdLfs = new("49F48D82-B10E-11DC-B99B-0019D1879648");
 
     /// <summary>
     /// NetBSD RAID partition
     /// </summary>
+    [PartitionTypeDescription("NetBSD RAID", "Member partition of a NetBSD RAIDframe set", false)]
     public static readonly Guid NetBsdRaid = new("49F48DAA-B10E-11DC-B99B-0019D1879648");
 
     /// <summary>
     /// NetBSD concatenated partition
     /// </summary>
+    [PartitionTypeDescription("NetBSD Concatenated", "NetBSD concatenated volume partition", false)]
     public static readonly Guid NetBsdConcatenated = new("2DB519C4-B10F-11DC-B99B-0019D1879648");
 
     /// <summary>
     /// NetBSD encrypted partition
     /// </summary>
+    [PartitionTypeDescription("NetBSD Encrypted", "NetBSD encrypted (cgd) partition", false)]
     public static readonly Guid NetBsdEncrypted = new("2DB519EC-B10F-11DC-B99B-0019D1879648");
 
     // ---------------------------------------------------------------------
@@ -403,31 +476,37 @@ public static class GptPartitionTypes
     /// <summary>
     /// ChromeOS kernel partition
     /// </summary>
+    [PartitionTypeDescription("ChromeOS Kernel", "ChromeOS verified boot kernel partition", false)]
     public static readonly Guid ChromeOsKernel = new("FE3A2A5D-4F32-41A7-B725-ACCC3285A309");
 
     /// <summary>
     /// ChromeOS rootfs partition
     /// </summary>
+    [PartitionTypeDescription("ChromeOS Root", "ChromeOS root filesystem partition", false)]
     public static readonly Guid ChromeOsRootFs = new("3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC");
 
     /// <summary>
     /// ChromeOS firmware partition
     /// </summary>
+    [PartitionTypeDescription("ChromeOS Firmware", "ChromeOS firmware partition", false)]
     public static readonly Guid ChromeOsFirmware = new("CAB6E88E-ABF3-4102-A07A-D4BB9BE3C1D3");
 
     /// <summary>
     /// ChromeOS partition reserved for future use
     /// </summary>
+    [PartitionTypeDescription("ChromeOS Reserved", "ChromeOS partition reserved for future use", false)]
     public static readonly Guid ChromeOsFutureUse = new("2E0A753D-9E48-43B0-8337-B15192CB1B5E");
 
     /// <summary>
     /// ChromeOS miniOS partition
     /// </summary>
+    [PartitionTypeDescription("ChromeOS miniOS", "ChromeOS miniOS recovery partition", false)]
     public static readonly Guid ChromeOsMiniOs = new("09845860-705F-4BB5-B16C-8A8A099CAF52");
 
     /// <summary>
     /// ChromeOS hibernate partition
     /// </summary>
+    [PartitionTypeDescription("ChromeOS Hibernate", "ChromeOS hibernate image partition", false)]
     public static readonly Guid ChromeOsHibernate = new("3F0F8318-F146-4E6B-8222-C28C8F02E0D5");
 
     // ---------------------------------------------------------------------
@@ -437,85 +516,102 @@ public static class GptPartitionTypes
     /// <summary>
     /// Haiku BFS partition
     /// </summary>
+    [PartitionTypeDescription("Haiku BFS", "Haiku Be File System partition", false)]
     public static readonly Guid HaikuBfs = new("42465331-3BA3-10F1-802A-4861696B7521");
 
     /// <summary>
     /// MidnightBSD boot partition
     /// </summary>
+    [PartitionTypeDescription("MidnightBSD Boot", "MidnightBSD boot partition", false)]
     public static readonly Guid MidnightBsdBoot = new("85D5E45E-237C-11E1-B4B3-E89A8F7FC3A7");
 
     /// <summary>
     /// MidnightBSD UFS partition
     /// </summary>
+    [PartitionTypeDescription("MidnightBSD UFS", "MidnightBSD UFS filesystem partition", false)]
     public static readonly Guid MidnightBsdUfs = new("85D5E45A-237C-11E1-B4B3-E89A8F7FC3A7");
 
     /// <summary>
     /// MidnightBSD ZFS partition
     /// </summary>
+    [PartitionTypeDescription("MidnightBSD ZFS", "MidnightBSD ZFS pool member partition", false)]
     public static readonly Guid MidnightBsdZfs = new("85D5E45B-237C-11E1-B4B3-E89A8F7FC3A7");
 
     /// <summary>
     /// Ceph journal
     /// </summary>
+    [PartitionTypeDescription("Ceph Journal", "Journal partition for a Ceph object storage daemon", false)]
     public static readonly Guid CephJournal = new("45B0969E-9B03-4F30-B4C6-B4B80CEFF106");
 
     /// <summary>
     /// Ceph OSD (object storage daemon) partition
     /// </summary>
+    [PartitionTypeDescription("Ceph OSD", "Ceph object storage daemon data partition", false)]
     public static readonly Guid CephOsd = new("4FBD7E29-9D25-41B8-AFD0-062C0CEFF05D");
 
     /// <summary>
     /// Ceph dm-crypt OSD partition
     /// </summary>
+    [PartitionTypeDescription("Ceph dm-crypt OSD", "Encrypted Ceph object storage daemon data partition", false)]
     public static readonly Guid CephDmCryptOsd = new("4FBD7E29-9D25-41B8-AFD0-5EC00CEFF05D");
 
     /// <summary>
     /// VMware ESX VMFS filesystem partition
     /// </summary>
+    [PartitionTypeDescription("VMware VMFS", "VMware ESX VMFS datastore filesystem partition", false)]
     public static readonly Guid VmwareVmfs = new("AA31E02A-400F-11DB-9590-000C2911D1B8");
 
     /// <summary>
     /// VMware ESX vmkcore crash dump partition
     /// </summary>
+    [PartitionTypeDescription("VMware vmkcore", "VMware ESX vmkcore crash dump partition", false)]
     public static readonly Guid VmwareVmkCore = new("9D275380-40AD-11DB-BF97-000C2911D1B8");
 
     /// <summary>
     /// VMware Virtual SAN (vsanD) partition
     /// </summary>
+    [PartitionTypeDescription("VMware Virtual SAN", "VMware Virtual SAN (vsanD) partition", false)]
     public static readonly Guid VmwareVsan = new("381CFCCC-7288-11E0-92EE-000C2911D0B2");
 
     /// <summary>
     /// ONIE boot partition (Open Network Install Environment)
     /// </summary>
+    [PartitionTypeDescription("ONIE Boot", "Boot partition for the Open Network Install Environment", false)]
     public static readonly Guid OnieBoot = new("7412F7D5-A156-4B13-81DC-867174929325");
 
     /// <summary>
     /// ONIE configuration partition
     /// </summary>
+    [PartitionTypeDescription("ONIE Config", "Configuration partition for the Open Network Install Environment", false)]
     public static readonly Guid OnieConfig = new("D4E6E2CD-4469-46F3-B5CB-1BFF57AFC149");
 
     /// <summary>
     /// PowerPC PReP boot partition
     /// </summary>
+    [PartitionTypeDescription("PowerPC PReP Boot", "PowerPC Reference Platform boot partition", false)]
     public static readonly Guid PowerPcPrepBoot = new("9E1A2D38-C612-4316-AA26-8B49521E5A8B");
 
     /// <summary>
     /// Atari TOS basic data partition
     /// </summary>
+    [PartitionTypeDescription("Atari TOS Basic Data", "Atari TOS basic data partition", false)]
     public static readonly Guid AtariTosBasicData = new("734E5AFE-F61A-11E6-BC64-92361F002671");
 
     /// <summary>
     /// VeraCrypt encrypted data partition
     /// </summary>
+    [PartitionTypeDescription("VeraCrypt Encrypted Data", "Partition encrypted with VeraCrypt", false)]
     public static readonly Guid VeraCryptEncryptedData = new("8C8F8EFF-AC95-4770-814A-21994F2DBC8F");
 
     /// <summary>
     /// Barebox bootloader state partition
     /// </summary>
+    [PartitionTypeDescription("Barebox State", "State storage partition used by the Barebox bootloader", false)]
     public static readonly Guid BareboxState = new("4778ED65-BF42-45FA-9C5B-287A1DC4AAB1");
 
     /// <summary>
     /// U-Boot environment partition
     /// </summary>
+    [PartitionTypeDescription("U-Boot Environment", "Environment storage partition used by the U-Boot bootloader", false)]
     public static readonly Guid UBootEnvironment = new("3DE21764-95BD-54BD-A5C3-4ABE786F38A8");
 }
