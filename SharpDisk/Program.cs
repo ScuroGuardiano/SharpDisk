@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Diagnostics;
 using SharpDisk.Core.Mbr;
-using SharpDisk.Linux;
+using SharpDisk.Lib;
 using Humanizer.Bytes;
 using SharpDisk.Core;
 using SharpDisk.Ui;
@@ -18,7 +18,7 @@ using Terminal.Gui.Views;
 Application.Init();
 // Application.QuitKey = Key.Q;
 
-if (!OperatingSystem.IsLinux())
+if (!BlkDeviceProviders.IsSupported)
 {
     MessageBox.Query(50, 7, "No support", "Only Linex is supported for now", "Switch to NoxOS");
     Application.Shutdown();
@@ -28,7 +28,7 @@ if (!OperatingSystem.IsLinux())
 
 try
 {
-    IBlkDeviceProvider blkProvider = new LinuxBlkDeviceProvider();
+    IBlkDeviceProvider blkProvider = BlkDeviceProviders.ForCurrentPlatform();
     var deviceList = Task.Run(async () => await blkProvider.ListDevices()).Result;
     
     var dataTable = new DataTable();
