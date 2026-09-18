@@ -18,6 +18,14 @@
 
     <ItemGroup>
         <!--
+            Abstractions only - IStringLocalizer and nothing else. Picking an implementation
+            (.resx, JSON, a database) is the host application's business, not the core library's.
+        -->
+        <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="10.0.12" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!--
             A compiler plugin, not a dependency: OutputItemType="Analyzer" loads it into the
             compiler and ReferenceOutputAssembly="false" keeps it out of the shipped output.
         -->

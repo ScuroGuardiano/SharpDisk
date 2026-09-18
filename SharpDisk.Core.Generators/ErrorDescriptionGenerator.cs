@@ -57,7 +57,6 @@ namespace SharpDisk.Core.Generators
             var initializer = new StringBuilder()
                 .Append("        new ").Append(infoType).Append('(')
                 .Append(flagsType).Append('.').Append(symbol.Name).Append(", ")
-                .Append("KeyPrefix, ")
                 .Append(GeneratorHelpers.Literal(symbol.Name)).Append(", ")
                 .Append(GeneratorHelpers.Literal(name)).Append(", ")
                 .Append(GeneratorHelpers.Literal(description)).Append(", ")
@@ -103,8 +102,6 @@ namespace SharpDisk.Core.Generators
                         "System.Collections.Immutable",
                         "System.Diagnostics.CodeAnalysis",
                         "System.Linq",
-                        "System.Runtime.CompilerServices",
-                        "SharpDisk.Core.Localization",
                     ])
                     + $@"
 namespace {ns};
@@ -119,11 +116,6 @@ namespace {ns};
 /// </remarks>
 public static class {className}
 {{
-    /// <summary>
-    /// Prefix every translation key in this class starts with.
-    /// </summary>
-    public const string KeyPrefix = {GeneratorHelpers.Literal(enumName)};
-
     /// <summary>
     /// Every description, in the order the flags are declared.
     /// </summary>
@@ -184,16 +176,6 @@ public static class {className}
 
         return worst;
     }}
-
-    /// <summary>
-    /// Every translatable string in this class, for <see cref=""TranslationCatalog""/>.
-    /// </summary>
-    public static ImmutableArray<TranslationEntry> TranslationEntries
-        => [.. All.SelectMany(static info => info.TranslationEntries)];
-
-    [ModuleInitializer]
-    internal static void RegisterTranslations()
-        => TranslationCatalog.Register(KeyPrefix, static () => TranslationEntries);
 }}
 ";
 

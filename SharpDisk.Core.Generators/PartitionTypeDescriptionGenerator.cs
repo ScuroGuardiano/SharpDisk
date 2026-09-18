@@ -52,7 +52,6 @@ namespace SharpDisk.Core.Generators
             var valueReference = $"{GeneratorHelpers.GlobalName(container)}.{symbol.Name}";
 
             var builder = new StringBuilder();
-            var ordinal = 0;
 
             foreach (var attribute in context.Attributes)
             {
@@ -70,15 +69,11 @@ namespace SharpDisk.Core.Generators
                 builder
                     .Append("        new ").Append(infoType).Append('(')
                     .Append(valueReference).Append(", ")
-                    .Append("KeyPrefix, ")
                     .Append(GeneratorHelpers.Literal(symbol.Name)).Append(", ")
-                    .Append(ordinal).Append(", ")
                     .Append(GeneratorHelpers.Literal(type)).Append(", ")
                     .Append(GeneratorHelpers.Literal(description)).Append(", ")
                     .Append(common ? "true" : "false")
                     .Append("),\n");
-
-                ordinal++;
             }
 
             if (builder.Length == 0)
@@ -122,8 +117,6 @@ namespace SharpDisk.Core.Generators
                         "System.Collections.Frozen",
                         "System.Collections.Immutable",
                         "System.Linq",
-                        "System.Runtime.CompilerServices",
-                        "SharpDisk.Core.Localization",
                     ])
                     + $@"
 namespace {ns};
@@ -138,11 +131,6 @@ namespace {ns};
 /// </remarks>
 public static class {className}
 {{
-    /// <summary>
-    /// Prefix every translation key in this class starts with.
-    /// </summary>
-    public const string KeyPrefix = {GeneratorHelpers.Literal(containerName)};
-
     /// <summary>
     /// Every description, in the order the values are declared.
     /// </summary>
@@ -180,16 +168,6 @@ public static class {className}
     /// </summary>
     public static bool TryGet({valueType} value, out ImmutableArray<{infoType}> infos)
         => ByValue.TryGetValue(value, out infos);
-
-    /// <summary>
-    /// Every translatable string in this class, for <see cref=""TranslationCatalog""/>.
-    /// </summary>
-    public static ImmutableArray<TranslationEntry> TranslationEntries
-        => [.. All.SelectMany(static info => info.TranslationEntries)];
-
-    [ModuleInitializer]
-    internal static void RegisterTranslations()
-        => TranslationCatalog.Register(KeyPrefix, static () => TranslationEntries);
 }}
 ";
 
