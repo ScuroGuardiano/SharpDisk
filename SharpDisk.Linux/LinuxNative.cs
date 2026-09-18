@@ -6,7 +6,7 @@ using System.Runtime.Versioning;
 namespace SharpDisk.Linux;
 
 [SupportedOSPlatform("linux")]
-public static class LinuxNative
+internal static class LinuxNative
 {
     private static readonly CULong BLKRRPART = new(0x125f);
     private static readonly CULong BLKSSZGET = new(0x1268);
@@ -96,7 +96,7 @@ public static class LinuxNative
 }
 
 [SupportedOSPlatform("linux")]
-public class IoctlException : Exception
+internal class IoctlException : Exception
 {
     public int Errno { get; }
 

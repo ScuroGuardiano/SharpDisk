@@ -4,7 +4,7 @@ using SharpDisk.Core;
 namespace SharpDisk.Linux;
 
 [SupportedOSPlatform("linux")]
-public sealed class BlockDeviceStream : DriveStream
+internal sealed class BlockDeviceStream : DriveStream
 {
     public BlockDeviceStream(string path, bool writable, bool allowPartition = false)
     {

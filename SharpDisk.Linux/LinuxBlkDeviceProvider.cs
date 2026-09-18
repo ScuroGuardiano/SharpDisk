@@ -4,7 +4,7 @@ using SharpDisk.Core;
 namespace SharpDisk.Linux;
 
 [SupportedOSPlatform("linux")]
-public class LinuxBlkDeviceProvider : IBlkDeviceProvider
+internal class LinuxBlkDeviceProvider : IBlkDeviceProvider
 {
     private readonly UEventParser _ueventParser = new UEventParser();
     private readonly ProcMountsParser _procMountsParser = new ProcMountsParser();

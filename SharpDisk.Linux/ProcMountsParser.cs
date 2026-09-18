@@ -1,6 +1,6 @@
 namespace SharpDisk.Linux;
 
-public class ProcMountsParser
+internal class ProcMountsParser
 {
     public IReadOnlyList<ProcMountEntry> Parse(string data)
     {
