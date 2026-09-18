@@ -1,0 +1,15 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/third-party/">
+    <Project Path="third-party/Photino.Blazor/Photino.Blazor.csproj" />
+  </Folder>
+  <Project Path="SharpDisk.Core/SharpDisk.Core.csproj" />
+  <Project Path="SharpDisk.Gui/SharpDisk.Gui.csproj" />
+  <Project Path="SharpDisk.Lib/SharpDisk.Lib.csproj" />
+  <Project Path="SharpDisk.Linux/SharpDisk.Linux.csproj" />
+  <Project Path="SharpDisk/SharpDisk.csproj" />
+</Solution>
