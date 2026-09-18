@@ -2,75 +2,20 @@ using System.Collections.Immutable;
 
 namespace SharpDisk.Core.Mbr;
 
-public class MbrPartitionTable
+public record MbrPartitionTable
 {
     // 0-445 Some fucking crap no one cares about [bootloader code]
     // 446-509 Partitions
-    private ImmutableArray<MbrPartition> _partitions = [
-        MbrPartition.Zeroed,
-        MbrPartition.Zeroed,
-        MbrPartition.Zeroed,
-        MbrPartition.Zeroed,
-    ]; 
 
-    public ImmutableArray<MbrPartition> Partitions
-    {
-        get => _partitions;
-        set
-        {
-            if (value.Length != 4)
-            {
-                throw new ArgumentException("Partition table must have 4 partitions, even if they're empty.");
-            }
-            _partitions = value;
-        }
-    }
+    public ImmutableArray<MbrPartition> Partitions { get; private init; } =
+    [
+        MbrPartition.Zeroed,
+        MbrPartition.Zeroed,
+        MbrPartition.Zeroed,
+        MbrPartition.Zeroed,
+    ];
 
     public ImmutableArray<byte> Signature { get; private init; } = [0x55, 0xAA];
-
-    /// <summary>
-    /// Verifies MBR table for correctness
-    /// </summary>
-    /// <returns></returns>
-    public MbrAnalyzeResult Verify()
-    {
-        // Verifies MBR Table for correctness.
-        // First of all we need to verify the signature. It should be 0x55, 0xAA
-
-        var tableErrors = MbrErrors.None;
-
-        if (Signature[0] != 0x55 && Signature[1] != 0xAA)
-        {
-            tableErrors |= MbrErrors.InvalidSignature;
-        }
-        
-        // Further verification makes no sense if partition table is empty, so let's check it
-        if (IsEmpty())
-        {
-            return new MbrAnalyzeResult()
-            {
-                IsEmpty = true,
-                TableErrors = tableErrors
-            };
-        }
-
-        if (IsProtective())
-        {
-            return new MbrAnalyzeResult()
-            {
-                IsProtective = true,
-                TableErrors = tableErrors
-            };
-        }
-
-
-        // TODO:
-
-        return new MbrAnalyzeResult()
-        {
-            TableErrors = tableErrors
-        };
-    }
 
     /// <summary>
     /// Returns whenever the partition table is empty. Partition table is empty if all of it's partitions are empty
@@ -78,8 +23,7 @@ public class MbrPartitionTable
     /// <returns></returns>
     public bool IsEmpty()
     {
-        // I can use equals here, because MbrPartition is a record with only comparable types inside
-        return Partitions.All(p => p == MbrPartition.Zeroed);
+        return Partitions.All(p => p.IsZeroed);
     }
 
     /// <summary>
@@ -126,7 +70,7 @@ public class MbrPartitionTable
 
         return new MbrPartitionTable
         {
-            _partitions = partitionsBuilder.DrainToImmutable(),
+            Partitions = partitionsBuilder.DrainToImmutable(),
             Signature = [data[510], data[511]]
         };
     }
