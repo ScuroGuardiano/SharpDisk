@@ -1,0 +1,132 @@
+<div class="app">
+    <header>
+        <h1>SharpDisk</h1>
+        <span class="sub">@_statusLine</span>
+    </header>
+
+    @if (_error is not null)
+    {
+        <div class="error">
+            <strong>@_error.GetType().Name</strong>
+            <pre>@_error.Message</pre>
+        </div>
+    }
+    else if (_drives is null)
+    {
+        <p class="muted">Reading block devices…</p>
+    }
+    else if (_drives.Count == 0)
+    {
+        <p class="muted">No block devices found.</p>
+    }
+    else
+    {
+        <div class="panes">
+            <section>
+                <h2>Drives</h2>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Device</th>
+                        <th>MAJ:MIN</th>
+                        <th class="num">Size</th>
+                        <th>Model</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var drive in _drives)
+                    {
+                        <tr class="@(drive == _selected ? "sel" : null)" @onclick="() => Select(drive)">
+                            <td>@drive.DevName</td>
+                            <td class="dim">@drive.Major:@drive.Minor</td>
+                            <td class="num">@FormatSize(drive.Size)</td>
+                            <td class="dim">@drive.Model?.Trim()</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </section>
+
+            <section>
+                <h2>Partitions @(_selected is null ? "" : $"— {_selected.DevName}")</h2>
+                @if (_selected?.Children is null || _selected.Children.Count == 0)
+                {
+                    <p class="muted">No partitions.</p>
+                }
+                else
+                {
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Partition</th>
+                            <th class="num">Size</th>
+                            <th>Mountpoints</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var part in _selected.Children)
+                        {
+                            <tr>
+                                <td>@part.DevName</td>
+                                <td class="num">@FormatSize(part.Size)</td>
+                                <td class="dim">@(part.Mountpoints is { Count: > 0 } m ? string.Join(", ", m) : "—")</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                }
+            </section>
+        </div>
+    }
+</div>
+
+@code
+{
+    private IReadOnlyList<BlkDevice>? _drives;
+    private BlkDevice? _selected;
+    private Exception? _error;
+    private string _statusLine = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (!BlkDeviceProviders.IsSupported)
+            {
+                throw new PlatformNotSupportedException("No block device backend for this OS.");
+            }
+
+            var provider = BlkDeviceProviders.ForCurrentPlatform();
+            var all = await provider.ListDevices();
+
+            // The provider returns a flat list; whole drives carry their partitions as Children.
+            _drives = all.Where(d => d.DeviceType == BlkDeviceType.Disk)
+                         .OrderBy(d => d.DevName, StringComparer.Ordinal)
+                         .ToList();
+
+            _selected = _drives.FirstOrDefault();
+            _statusLine = $"{provider.GetType().Name} — {_drives.Count} drive(s)";
+        }
+        catch (Exception ex)
+        {
+            _error = ex;
+        }
+    }
+
+    private void Select(BlkDevice drive) => _selected = drive;
+
+    private static string FormatSize(ulong bytes)
+    {
+        string[] units = ["B", "KiB", "MiB", "GiB", "TiB", "PiB"];
+        double value = bytes;
+        var unit = 0;
+
+        while (value >= 1024 && unit < units.Length - 1)
+        {
+            value /= 1024;
+            unit++;
+        }
+
+        return unit == 0 ? $"{bytes} B" : $"{value:0.##} {units[unit]}";
+    }
+}

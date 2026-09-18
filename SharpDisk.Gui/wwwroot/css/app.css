@@ -1,0 +1,92 @@
+:root {
+    color-scheme: dark;
+    --bg: #14161a;
+    --panel: #1b1e24;
+    --line: #2b303a;
+    --text: #dfe3ea;
+    --dim: #8b94a3;
+    --accent: #4d9cf6;
+    --err: #ff6b6b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.45 "Segoe UI", Cantarell, "DejaVu Sans", system-ui, sans-serif;
+}
+
+.app { padding: 20px; }
+
+header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+}
+
+h1 { font-size: 20px; margin: 0; letter-spacing: .3px; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .8px; color: var(--dim); margin: 0 0 10px; }
+
+.sub { color: var(--dim); font-size: 12px; }
+.muted { color: var(--dim); }
+.dim { color: var(--dim); }
+
+.panes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+@media (max-width: 820px) {
+    .panes { grid-template-columns: 1fr; }
+}
+
+section {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    overflow-x: auto;
+}
+
+table { width: 100%; border-collapse: collapse; }
+
+th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--dim);
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+td {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(43, 48, 58, .5);
+    white-space: nowrap;
+}
+
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+tbody tr { cursor: default; }
+tbody tr:hover { background: rgba(77, 156, 246, .07); }
+
+tr.sel { background: rgba(77, 156, 246, .16); }
+tr.sel td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
+
+.error {
+    background: rgba(255, 107, 107, .1);
+    border: 1px solid var(--err);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+}
+
+.error strong { color: var(--err); }
+.error pre { margin: 8px 0 0; white-space: pre-wrap; font-size: 12px; }

@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+    <PropertyGroup>
+        <!--
+            Exe, not WinExe: on Linux the two behave the same, but Exe keeps a console attached
+            on Windows too, which is worth having while the Photino host is still unproven.
+            Switch to WinExe once it is.
+        -->
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>SharpDisk.Gui</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\SharpDisk.Core\SharpDisk.Core.csproj" />
+        <ProjectReference Include="..\SharpDisk.Lib\SharpDisk.Lib.csproj" />
+        <ProjectReference Include="..\third-party\Photino.Blazor\Photino.Blazor.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Update="wwwroot\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+</Project>
