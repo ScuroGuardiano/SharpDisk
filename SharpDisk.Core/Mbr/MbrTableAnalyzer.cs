@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Numerics;
 
 namespace SharpDisk.Core.Mbr;
@@ -6,7 +7,6 @@ namespace SharpDisk.Core.Mbr;
 /// Analyzer/Validator for MbrTable. It is not 100% strict tho and won't be.
 /// MBR is so convoluted, there is no single standard, it's messy, half of set error flags are just warnings.
 /// Hell knows how different OS-es interpret fields here.
-/// TODO: Oh and it won't analyze Hybrid MBR correctly as for now.
 /// <br/><br/>
 /// The only thing I know for sure, partitions can't overlap, can't overflow the drive and table must have signature at the end.
 /// <br/>
@@ -70,7 +70,6 @@ public class MbrTableAnalyzer
     {
         var result = new MbrAnalyzeResult();
 
-
         if (table.Signature[0] != 0x55 || table.Signature[1] != 0xAA)
         {
             result.TableErrors |= MbrErrors.InvalidSignature;
@@ -83,14 +82,27 @@ public class MbrTableAnalyzer
             return result;
         }
 
-        if (table.IsProtective())
+        var protectiveIndex = FindProtective(table, out var protectiveCount, out var foreignCount);
+        var isHybrid = protectiveIndex >= 0 && foreignCount > 0;
+
+        result.IsProtective = protectiveIndex >= 0 && foreignCount == 0;
+        result.IsHybrid = isHybrid;
+
+        if (protectiveIndex >= 0)
         {
-            result.IsProtective = true;
-            AnalyzeProtective(table, ref result);
-            return result;
+            AnalyzeProtective(table, protectiveIndex, protectiveCount, isHybrid, ref result);
+
+            // A clean protective MBR has nothing else in it; every other slot is required
+            // to be zero and AnalyzeProtective already verified that.
+            if (!isHybrid)
+            {
+                return result;
+            }
         }
 
-        AnalyzePartitions(table, ref result);
+        // Everything that is not the 0xEE partition is a real one and goes through the
+        // ordinary flow: bounds, alignment, ordering, overlaps, CHS.
+        AnalyzePartitions(table, protectiveIndex, ref result);
 
         return result;
     }
@@ -99,13 +111,55 @@ public class MbrTableAnalyzer
         => partition.PartitionType == MbrPartitionTypes.Empty;
 
     /// <summary>
-    /// Fills <paramref name="byTableIndex"/> with the table indices of used entries in table order,
-    /// and <paramref name="byLba"/> with the same indices sorted by <c>FirstLba</c>.
-    /// The sort is stable, so entries sharing a start LBA keep their table order.
+    /// A partition that takes part in ordinary analysis: used, and not the 0xEE one.
     /// </summary>
-    /// <returns>Number of used entries.</returns>
+    private static bool IsAnalyzable(in MbrPartitionTable table, int index, int protectiveIndex)
+        => index != protectiveIndex && !IsUnused(table.Partitions[index]);
+
+    /// <summary>
+    /// Locates the protective partition and counts what surrounds it.
+    /// </summary>
+    /// <param name="protectiveCount">Number of <c>0xEE</c> partitions; more than one is malformed.</param>
+    /// <param name="foreignCount">Number of used partitions that are not <c>0xEE</c>; non-zero means hybrid.</param>
+    /// <returns>Index of the first <c>0xEE</c> partition, or -1 when there is none.</returns>
+    private static int FindProtective(in MbrPartitionTable table, out int protectiveCount, out int foreignCount)
+    {
+        var index = -1;
+        protectiveCount = 0;
+        foreignCount = 0;
+
+        for (var i = 0; i < table.Partitions.Length; i++)
+        {
+            if (table.Partitions[i].PartitionType == MbrPartitionTypes.ProtectiveMbr)
+            {
+                protectiveCount++;
+
+                if (index < 0)
+                {
+                    index = i;
+                }
+
+                continue;
+            }
+
+            if (!IsUnused(table.Partitions[i]))
+            {
+                foreignCount++;
+            }
+        }
+
+        return index;
+    }
+
+    /// <summary>
+    /// Fills <paramref name="byTableIndex"/> with the table indices of analyzable partitions in
+    /// table order, and <paramref name="byLba"/> with the same indices sorted by <c>FirstLba</c>.
+    /// The sort is stable, so partitions sharing a start LBA keep their table order.
+    /// </summary>
+    /// <returns>Number of analyzable partitions.</returns>
     private static int BuildPhysicalOrder(
-        MbrPartitionTable table,
+        in MbrPartitionTable table,
+        int protectiveIndex,
         Span<int> byTableIndex,
         Span<int> byLba)
     {
@@ -113,7 +167,7 @@ public class MbrTableAnalyzer
 
         for (var i = 0; i < table.Partitions.Length; i++)
         {
-            if (IsUnused(table.Partitions[i]))
+            if (!IsAnalyzable(table, i, protectiveIndex))
             {
                 continue;
             }
@@ -143,19 +197,23 @@ public class MbrTableAnalyzer
         return count;
     }
 
-    private void AnalyzePartitions(MbrPartitionTable table, ref MbrAnalyzeResult result)
+    private void AnalyzePartitions(in MbrPartitionTable table, int protectiveIndex, ref MbrAnalyzeResult result)
     {
-        // Overlaps first.
+        Debug.Assert(table.Partitions.Length == PartitionCount);
+
+        // Overlaps between real partitions. The 0xEE partition is excluded: in a hybrid it is
+        // expected to abut or cover the hybridised regions, so pairing it here would report
+        // an overlap on every correctly built hybrid MBR.
         for (var i = 0; i < table.Partitions.Length; i++)
         {
-            if (IsUnused(table.Partitions[i]))
+            if (!IsAnalyzable(table, i, protectiveIndex))
             {
                 continue;
             }
 
             for (var j = i + 1; j < table.Partitions.Length; j++)
             {
-                if (IsUnused(table.Partitions[j]))
+                if (!IsAnalyzable(table, j, protectiveIndex))
                 {
                     continue;
                 }
@@ -170,18 +228,24 @@ public class MbrTableAnalyzer
 
         Span<int> byTableIndex = stackalloc int[PartitionCount];
         Span<int> byLba = stackalloc int[PartitionCount];
-        var usedCount = BuildPhysicalOrder(table, byTableIndex, byLba);
+        var usedCount = BuildPhysicalOrder(table, protectiveIndex, byTableIndex, byLba);
 
-        // -1 when every entry is unused, so no partition can match it.
+        // -1 when every partition is unused, so none can match it.
         var firstPhysicalIndex = usedCount > 0 ? byLba[0] : -1;
 
         for (var i = 0; i < table.Partitions.Length; i++)
         {
+            // The 0xEE partition has its own rules and was already analyzed.
+            if (i == protectiveIndex)
+            {
+                continue;
+            }
+
             result.PartitionErrors[i] |= AnalyzePartition(table.Partitions[i], i == firstPhysicalIndex);
         }
 
-        // Table slot k holds the k-th used entry; it should also be the k-th by start LBA.
-        // The error is attributed to the slot that is out of place, not to the entry that
+        // Table slot k holds the k-th used partition; it should also be the k-th by start LBA.
+        // The error is attributed to the slot that is out of place, not to the partition that
         // should have been there.
         for (var k = 0; k < usedCount; k++)
         {
@@ -197,9 +261,10 @@ public class MbrTableAnalyzer
         result.TableErrors |= result.Partition4Errors != MbrPartitionErrors.None ? MbrErrors.InvalidPartition4 : MbrErrors.None;
 
         var activeCount = 0;
-        foreach (var partition in table.Partitions)
+        for (var i = 0; i < table.Partitions.Length; i++)
         {
-            if (partition.Bootable == MbrBootable.Bootable)
+            if (IsAnalyzable(table, i, protectiveIndex) &&
+                table.Partitions[i].Bootable == MbrBootable.Bootable)
             {
                 activeCount++;
             }
@@ -348,7 +413,7 @@ public class MbrTableAnalyzer
 
         var errors = CheckChs(partition.FirstChs, partition.FirstLba);
 
-        // EndingCHS addresses the last sector, inclusive. A zero-length partition has no
+        // LastChs addresses the last sector, inclusive. A zero-length partition has no
         // last sector; ZeroLengthPartition already covers that case.
         if (partition.LbaCount > 0)
         {
@@ -363,68 +428,39 @@ public class MbrTableAnalyzer
     // Protective MBR
 
     /// <summary>
-    /// Validates a protective MBR against UEFI Specification section 5.2.2,
-    /// table "Protective MBR Partition Record".
+    /// Validates the <c>0xEE</c> partition. Against the full UEFI Specification section 5.2.2,
+    /// table "Protective MBR Partition Record", when it is the whole story - against the
+    /// relaxed hybrid rules when it is not.
     /// </summary>
     /// <remarks>
-    /// Assumes the caller already established that a <c>0xEE</c> entry is present.
+    /// Assumes the caller already located the <c>0xEE</c> partition.
     /// The signature check stays in <c>Analyze</c>, since it is common to every table.
     /// </remarks>
-    private void AnalyzeProtective(in MbrPartitionTable table, ref MbrAnalyzeResult result)
+    private void AnalyzeProtective(
+        in MbrPartitionTable table,
+        int protectiveIndex,
+        int protectiveCount,
+        bool isHybrid,
+        ref MbrAnalyzeResult result)
     {
-        var protectiveIndex = -1;
-        var protectiveCount = 0;
-        var foreignCount = 0;
-
-        for (var i = 0; i < table.Partitions.Length; i++)
-        {
-            if (table.Partitions[i].PartitionType == MbrPartitionTypes.ProtectiveMbr)
-            {
-                protectiveCount++;
-
-                if (protectiveIndex < 0)
-                {
-                    protectiveIndex = i;
-                }
-
-                continue;
-            }
-
-            if (!IsUnused(table.Partitions[i]))
-            {
-                foreignCount++;
-            }
-        }
-
         if (protectiveCount > 1)
         {
             result.TableErrors |= MbrErrors.MultipleProtectiveEntries;
         }
 
-        // A hybrid MBR describes the same sectors twice, in two tables that can drift apart.
-        // It is not a protective MBR at all, so the per-entry rules below do not apply to
-        // the other records - only the 0xEE one is still expected to be well formed.
-        if (foreignCount > 0)
-        {
-            result.TableErrors |= MbrErrors.HybridMbr;
-        }
-
-        if (protectiveIndex < 0)
-        {
-            return;
-        }
-
-        // The specification places the protective record in the first slot.
+        // The specification places the protective partition in the first slot.
         if (protectiveIndex != 0)
         {
             result.PartitionErrors[protectiveIndex] |= MbrPartitionErrors.ProtectivePartitionNotFirst;
         }
 
-        result.PartitionErrors[protectiveIndex] |= AnalyzeProtectivePartition(table.Partitions[protectiveIndex]);
+        result.PartitionErrors[protectiveIndex] |= isHybrid
+            ? AnalyzeHybridProtectivePartition(table.Partitions[protectiveIndex])
+            : AnalyzeStrictProtectivePartition(table.Partitions[protectiveIndex]);
 
-        // Every remaining record must be zero-filled. In a hybrid MBR they deliberately are
-        // not, and HybridMbr already reports that, so do not pile a second error on top.
-        if (foreignCount > 0)
+        // Only a clean protective MBR requires the remaining slots to be zero-filled.
+        // In a hybrid they carry real partitions by design.
+        if (isHybrid)
         {
             return;
         }
@@ -441,24 +477,28 @@ public class MbrTableAnalyzer
         }
     }
 
-    private MbrPartitionErrors AnalyzeProtectivePartition(in MbrPartition partition)
+    /// <summary>
+    /// Full UEFI Specification 5.2.2 rules, applicable only when the 0xEE partition is the whole story.
+    /// </summary>
+    private MbrPartitionErrors AnalyzeStrictProtectivePartition(in MbrPartition partition)
     {
         var errors = MbrPartitionErrors.None;
 
-        // BootIndicator: 0x00. Not merely "not 0x80" - the field must be zero.
+        // Bootable: 0x00. Not merely "not 0x80" - the field must be zero.
         if (partition.Bootable != MbrBootable.NonBootable)
         {
             errors |= MbrPartitionErrors.ProtectivePartitionBootable;
         }
 
-        // StartingLBA: 1, the location of the GPT header.
+        // FirstLba: 1, the location of the GPT header.
         if (partition.FirstLba != 1)
         {
             errors |= MbrPartitionErrors.ProtectiveFirstLbaInvalid;
         }
 
-        // SizeInLBA: the whole disk minus the MBR itself, saturated at 32 bits.
-        var expectedSize = _driveLbaCount - 1 > ProtectiveSizeSaturation
+        // LbaCount: the whole disk minus the MBR itself, saturated at 32 bits.
+        // A zero-sized drive has no valid size to expect, so nothing can match.
+        var expectedSize = _driveLbaCount == 0 || _driveLbaCount - 1 > ProtectiveSizeSaturation
             ? ProtectiveSizeSaturation
             : (uint)(_driveLbaCount - 1);
 
@@ -471,43 +511,90 @@ public class MbrTableAnalyzer
                 : MbrPartitionErrors.ProtectiveSizeInvalid;
         }
 
-        errors |= AnalyzeProtectiveChs(partition);
-
-        return errors;
-    }
-
-    private MbrPartitionErrors AnalyzeProtectiveChs(in MbrPartition partition)
-    {
-        var errors = MbrPartitionErrors.None;
-
-        // StartingCHS: the literal constant 00 02 00, not a value derived from geometry.
+        // FirstChs: the literal constant 00 02 00, not a value derived from geometry.
         // It holds on 4Kn media too, which is why this is checked outside _chsMeaningful.
         if (partition.FirstChs != CHSAddress.Second)
         {
             errors |= MbrPartitionErrors.ProtectiveFirstChsInvalid;
         }
 
-        // According to a clanker, saturated here is always acceptable.
-        // According to spec: Set to the CHS address of the last logical block on the disk. Set to 0xFFFFFF if it is not possible to represent the value in this field.
-        // I mean, technically we can say that we can't represent value in this field because CHS is fucking obsolete
-        // and doesn't matter anything anymore, since we don't know geometry of the drive.
-        if (partition.LastChs == CHSAddress.ProtectiveMbr)
+        if (_driveLbaCount == 0)
         {
+            // Nothing to address, so only the FF FF FF marker can be right here.
+            errors |= partition.LastChs == CHSAddress.ProtectiveMbr
+                ? MbrPartitionErrors.None
+                : MbrPartitionErrors.ProtectiveEndChsInvalid;
+
             return errors;
         }
 
-        if (!_chsMeaningful || _driveLbaCount == 0)
+        errors |= CheckProtectiveEndChs(partition, _driveLbaCount - 1);
+
+        return errors;
+    }
+
+    /// <summary>
+    /// Relaxed rules for the 0xEE partition inside a hybrid MBR. It no longer stands for
+    /// the whole disk - gdisk sizes it to cover LBA 1 up to the first hybridised partition -
+    /// so its size cannot be predicted. What remains checkable is that it is not bootable,
+    /// starts where the GPT header lives, and stays inside the disk.
+    /// </summary>
+    private MbrPartitionErrors AnalyzeHybridProtectivePartition(in MbrPartition partition)
+    {
+        var errors = MbrPartitionErrors.None;
+
+        if (partition.Bootable != MbrBootable.NonBootable)
         {
-            return errors | MbrPartitionErrors.ProtectiveEndChsInvalid;
+            errors |= MbrPartitionErrors.ProtectivePartitionBootable;
         }
 
-        var lastLba = _driveLbaCount - 1;
-
-        if (lastLba >= _chsLimitLba || partition.LastChs != LbaToChs(lastLba))
+        if (partition.FirstLba != 1)
         {
-            errors |= MbrPartitionErrors.ProtectiveEndChsInvalid;
+            errors |= MbrPartitionErrors.ProtectiveFirstLbaInvalid;
+        }
+
+        if (partition.LbaCount == 0 ||
+            (ulong)partition.FirstLba + partition.LbaCount > _driveLbaCount)
+        {
+            errors |= MbrPartitionErrors.ProtectiveOutOfBounds;
+        }
+
+        if (partition.FirstChs != CHSAddress.Second)
+        {
+            errors |= MbrPartitionErrors.ProtectiveFirstChsInvalid;
+        }
+
+        if (partition.LbaCount > 0)
+        {
+            errors |= CheckProtectiveEndChs(partition, (ulong)partition.FirstLba + partition.LbaCount - 1);
         }
 
         return errors;
+    }
+
+    /// <summary>
+    /// LastChs of a protective partition is the CHS of its last block, or FF FF FF when that
+    /// block is not representable.
+    /// </summary>
+    /// <remarks>
+    /// According to a clanker, saturated here is always acceptable.
+    /// According to spec: Set to the CHS address of the last logical block on the disk.
+    /// Set to 0xFFFFFF if it is not possible to represent the value in this field.
+    /// I mean, technically we can say that we can't represent value in this field because CHS is fucking obsolete
+    /// and doesn't matter anything anymore, since we don't know geometry of the drive.
+    /// </remarks>
+    private MbrPartitionErrors CheckProtectiveEndChs(in MbrPartition partition, ulong lastLba)
+    {
+        if (partition.LastChs == CHSAddress.ProtectiveMbr)
+        {
+            return MbrPartitionErrors.None;
+        }
+
+        if (!_chsMeaningful || lastLba >= _chsLimitLba || partition.LastChs != LbaToChs(lastLba))
+        {
+            return MbrPartitionErrors.ProtectiveEndChsInvalid;
+        }
+
+        return MbrPartitionErrors.None;
     }
 }

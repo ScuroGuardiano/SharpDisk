@@ -109,4 +109,12 @@ public enum MbrPartitionErrors : uint
     /// Size of protective partition is equal to <see cref="uint.MaxValue"/> - 1, but drive is smaller than that.
     /// </summary>
     ProtectiveSizeSaturated = 1 << 20,
+
+    /// <summary>
+    /// Hybrid MBR only: the area covered by the 0xEE entry runs past the end of the drive,
+    /// or the entry has no length at all. In a hybrid its size is not predictable
+    /// (gdisk sizes it up to the first hybridised partition), so staying in bounds
+    /// is all we can demand of it.
+    /// </summary>
+    ProtectiveOutOfBounds = 1 << 21,
 }

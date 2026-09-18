@@ -51,21 +51,12 @@ public enum MbrErrors : uint
     InvalidReservedFields = 1 << 10,
 
     /// <summary>
-    /// 0xEE and normal MBR entries, we have two partition tables - MBR and GPT, potentially unsafe situation.
-    /// Sometimes is indented tho, like for example in hybrid ISO images.
-    /// But for mutable drives it's unsafe, because tables are not kept in sync.
-    /// So basically we can have mismatch between partitions table, we can get overrides and corrupt data.
-    /// In edge case of course.
-    /// </summary>
-    HybridMbr,
-
-    /// <summary>
     /// Multiple protective (0xEE) partitions
     /// </summary>
-    MultipleProtectiveEntries,
+    MultipleProtectiveEntries = 1 << 11,
 
     /// <summary>
-    /// Entries 2-4 are not zeroed
+    /// Clean protective MBR: entries other than the 0xEE one are not zeroed
     /// </summary>
-    ProtectiveSlotsNotZeroed,
+    ProtectiveSlotsNotZeroed = 1 << 12,
 }

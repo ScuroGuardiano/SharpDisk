@@ -5,7 +5,19 @@ namespace SharpDisk.Core.Mbr;
 public struct MbrAnalyzeResult
 {
     public bool IsEmpty { get; internal set; }
+
+    /// <summary>
+    /// True only for a <b>clean</b> protective MBR - a 0xEE partition and nothing else.
+    /// A hybrid MBR sets <see cref="IsHybrid"/> instead.
+    /// </summary>
     public bool IsProtective { get; internal set; }
+
+    /// <summary>
+    /// True when a 0xEE partition coexists with real ones. Not an error on its own -
+    /// hybrid ISO images do this on purpose - but on a mutable drive the MBR and GPT
+    /// describe the same sectors twice and can drift apart.
+    /// </summary>
+    public bool IsHybrid { get; internal set; }
     
     public MbrErrors TableErrors { get; internal set; }
 
