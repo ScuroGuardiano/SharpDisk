@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <!--
+        RID agnostic on purpose: every backend is referenced unconditionally and the right one
+        is picked at runtime, so one build of this library runs everywhere.
+
+        That works because a [DllImport] is only metadata - the native library is resolved on the
+        first actual call into the stub, not when the assembly or the type loads. LinuxNative's
+        static fields are plain CULong values, so even touching that class off Linux does nothing.
+        The rule this relies on: no backend may call native code from a static constructor or a
+        [ModuleInitializer], because those do run regardless of platform.
+    -->
+    <ItemGroup>
+        <ProjectReference Include="..\SharpDisk.Core\SharpDisk.Core.csproj" />
+        <ProjectReference Include="..\SharpDisk.Linux\SharpDisk.Linux.csproj" />
+    </ItemGroup>
+
+    <!--
+        SharpDisk.Windows does not exist yet, so its reference cannot be unconditional the way
+        the Linux one is. This is the only compile-time branch left, and it disappears - along
+        with the matching #if in BlkDeviceProviders - the moment that project lands.
+    -->
+    <PropertyGroup>
+        <SharpDiskWindowsProject>$(MSBuildThisFileDirectory)..\SharpDisk.Windows\SharpDisk.Windows.csproj</SharpDiskWindowsProject>
+        <SharpDiskHasWindows Condition="Exists('$(SharpDiskWindowsProject)')">true</SharpDiskHasWindows>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(SharpDiskHasWindows)' == 'true'">
+        <DefineConstants>$(DefineConstants);SHARPDISK_WINDOWS</DefineConstants>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(SharpDiskHasWindows)' == 'true'">
+        <ProjectReference Include="$(SharpDiskWindowsProject)" />
+    </ItemGroup>
+
+</Project>

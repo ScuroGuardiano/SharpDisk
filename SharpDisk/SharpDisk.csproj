@@ -10,7 +10,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\SharpDisk.Core\SharpDisk.Core.csproj" />
-      <ProjectReference Include="..\SharpDisk.Linux\SharpDisk.Linux.csproj" />
+      <ProjectReference Include="..\SharpDisk.Lib\SharpDisk.Lib.csproj" />
     </ItemGroup>
 
     <ItemGroup>

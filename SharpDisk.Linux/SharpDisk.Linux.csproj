@@ -11,4 +11,13 @@
       <ProjectReference Include="..\SharpDisk.Core\SharpDisk.Core.csproj" />
     </ItemGroup>
 
+    <!--
+        Every type here is internal. The Linux backend is an implementation detail of
+        SharpDisk.Lib - the GUI and any other consumer go through BlkDeviceProviders and
+        the platform agnostic contracts in SharpDisk.Core, never through ioctl directly.
+    -->
+    <ItemGroup>
+      <InternalsVisibleTo Include="SharpDisk.Lib" />
+    </ItemGroup>
+
 </Project>
