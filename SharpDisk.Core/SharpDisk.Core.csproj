@@ -1,9 +1,29 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
+
+    <PropertyGroup>
+        <!--
+            Write what the generator produced to obj/Generated so it can be read, diffed and
+            stepped into. obj/ is outside the compile glob, so these copies are never compiled
+            twice.
+        -->
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!--
+            A compiler plugin, not a dependency: OutputItemType="Analyzer" loads it into the
+            compiler and ReferenceOutputAssembly="false" keeps it out of the shipped output.
+        -->
+        <ProjectReference Include="..\SharpDisk.Core.Generators\SharpDisk.Core.Generators.csproj"
+                          OutputItemType="Analyzer"
+                          ReferenceOutputAssembly="false" />
+    </ItemGroup>
 
 </Project>

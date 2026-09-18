@@ -8,6 +8,7 @@
     <Project Path="third-party/Photino.Blazor/Photino.Blazor.csproj" />
   </Folder>
   <Project Path="SharpDisk.Core/SharpDisk.Core.csproj" />
+  <Project Path="SharpDisk.Core.Generators/SharpDisk.Core.Generators.csproj" />
   <Project Path="SharpDisk.Gui/SharpDisk.Gui.csproj" />
   <Project Path="SharpDisk.Lib/SharpDisk.Lib.csproj" />
   <Project Path="SharpDisk.Linux/SharpDisk.Linux.csproj" />
