@@ -1,14 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl" data-mdb-theme="dark">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <base href="/" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width"/>
+    <base href="/"/>
     <title>SharpDisk</title>
-    <link rel="stylesheet" href="css/app.css" />
+
+    <!--
+        MDB UI Kit (Material Design for Bootstrap 5), vendored under wwwroot/lib/mdb so the window
+        renders with no network at all. It already contains Bootstrap, so no separate Bootstrap
+        file is needed.
+    -->
+    <link rel="stylesheet" href="lib/mdb/css/mdb.min.css"/>
+    <link rel="stylesheet" href="css/app.css"/>
 </head>
 <body>
-    <app>Loading…</app>
-    <script src="_framework/blazor.webview.js"></script>
+<app>Ładowanie…</app>
+
+<script src="lib/mdb/js/mdb.umd.min.js"></script>
+<script src="_framework/blazor.webview.js"></script>
 </body>
 </html>

@@ -1,0 +1,55 @@
+@namespace SharpDisk.Gui.Layout
+@implements IDisposable
+@inject DiskSession Session
+
+<div class="app-brand">
+    <span class="app-brand-mark">#</span>
+    <div>
+        <div class="app-brand-name">SharpDisk</div>
+        <div class="app-brand-sub">Edytor tablic partycji</div>
+    </div>
+</div>
+
+<nav class="app-nav">
+    <NavLink class="app-nav-link" href="" Match="NavLinkMatch.All">
+        <span class="app-nav-icon">@DiskIcon</span>
+        <span>Lista dysków</span>
+    </NavLink>
+    <NavLink class="app-nav-link" href="open">
+        <span class="app-nav-icon">@FolderIcon</span>
+        <span>Otwórz plik/urządzenie blokowe</span>
+    </NavLink>
+</nav>
+
+@if (Session.Current is { } disk)
+{
+    <div class="app-open-disk">
+        <div class="app-open-disk-label">Otwarty nośnik</div>
+        <NavLink class="app-open-disk-name" href="disk">@disk.Source.DisplayName</NavLink>
+        <div class="app-open-disk-meta">@ByteSize.Format(disk.SizeInBytes) &middot; @LayoutLabel(disk.LayoutKind)</div>
+    </div>
+}
+
+@code {
+    // Inline SVG rather than an icon font: the whole UI has to work with no network, and pulling
+    // Font Awesome in for two glyphs is not worth another vendored dependency.
+    private static readonly MarkupString DiskIcon = new(
+        """<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 1.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Zm0 3.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg>""");
+
+    private static readonly MarkupString FolderIcon = new(
+        """<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M1.5 3.5A1.5 1.5 0 0 1 3 2h3.2l1.2 1.5H13A1.5 1.5 0 0 1 14.5 5v6.5A1.5 1.5 0 0 1 13 13H3a1.5 1.5 0 0 1-1.5-1.5v-8Z"/></svg>""");
+
+    protected override void OnInitialized() => Session.Changed += OnSessionChanged;
+
+    public void Dispose() => Session.Changed -= OnSessionChanged;
+
+    private void OnSessionChanged() => InvokeAsync(StateHasChanged);
+
+    private static string LayoutLabel(MbrLayoutKind kind) => kind switch
+    {
+        MbrLayoutKind.Empty => "pusty MBR",
+        MbrLayoutKind.Protective => "protective MBR",
+        MbrLayoutKind.Hybrid => "hybrid MBR",
+        _ => "MBR",
+    };
+}

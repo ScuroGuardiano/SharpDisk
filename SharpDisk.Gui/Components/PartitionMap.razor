@@ -1,0 +1,137 @@
+@namespace SharpDisk.Gui.Components
+
+<div class="pmap">
+    @foreach (var lane in Lanes)
+    {
+        <div class="pmap-lane @lane.CssClass">
+            @foreach (var segment in lane.Segments)
+            {
+                <div class="pmap-seg @KindClass(segment)"
+                     style="left:@Percent(segment.StartFraction);width:@Percent(segment.WidthFraction);--seg-color:@segment.Color"
+                     title="@Tooltip(segment)">
+                    <div class="pmap-seg-fill"></div>
+                    <div class="pmap-seg-text">
+                        <div class="pmap-seg-title">@Headline(segment)</div>
+                        <div class="pmap-seg-sub">@ByteSize.Format(segment.SizeInBytes)</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<div class="pmap-legend">
+    @foreach (var segment in Map.Partitions)
+    {
+        <div class="pmap-legend-item" title="@Tooltip(segment)">
+            <span class="pmap-swatch" style="background-color:@segment.Color"></span>
+            <span class="fw-bold">@segment.Slot.</span>
+            <span>@segment.TypeName</span>
+            <span class="text-muted">@ByteSize.Format(segment.SizeInBytes)</span>
+            @if (segment.Bootable)
+            {
+                <span class="badge bg-success">boot</span>
+            }
+            @if (segment.Protective)
+            {
+                <span class="badge bg-secondary">0xEE</span>
+            }
+            @if (segment.MaxSeverity is { } severity)
+            {
+                <span class="badge @SeverityBadgeClass(severity)">uwagi</span>
+            }
+        </div>
+    }
+    <div class="pmap-legend-item">
+        <span class="pmap-swatch pmap-swatch--free"></span>
+        <span class="text-muted">Wolne miejsce</span>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public DiskMap Map { get; set; } = null!;
+
+    private sealed record Lane(int Index, string CssClass, IReadOnlyList<DiskSegment> Segments);
+
+    private IEnumerable<Lane> Lanes => Map.Segments
+        .GroupBy(segment => segment.Lane)
+        .OrderBy(group => group.Key)
+        .Select(group => new Lane(group.Key, LaneClass(group.Key, group), [.. group.OrderBy(s => s.StartFraction)]));
+
+    /// <summary>
+    /// Only the first data row is hatched, because only there does bare background mean free
+    /// space. On an overlap row a gap means nothing at all, so it gets a plain dashed lane that
+    /// cannot be mistaken for unallocated sectors.
+    /// </summary>
+    private string LaneClass(int index, IEnumerable<DiskSegment> segments)
+    {
+        if (segments.All(segment => segment.Protective))
+        {
+            return "pmap-lane--protective";
+        }
+
+        return index > Map.FirstDataLane ? "pmap-lane--overlay" : string.Empty;
+    }
+
+    // CSS percentages must use a dot. The UI runs under a Polish culture where ToString would
+    // produce "12,5", which the browser silently drops - hence the explicit invariant format.
+    private static string Percent(double fraction)
+        => (fraction * 100).ToString("0.######", CultureInfo.InvariantCulture) + "%";
+
+    /// <summary>
+    /// Below this the block is too thin for a label - showing one just produces "W... 1..."
+    /// slivers. The tooltip still has everything.
+    /// </summary>
+    private const double NarrowThreshold = 0.035;
+
+    private static string KindClass(DiskSegment segment)
+    {
+        var kind = segment switch
+        {
+            { Kind: DiskSegmentKind.Free } => "pmap-seg--free",
+            { Protective: true } => "pmap-seg--protective",
+            { MaxSeverity: Severity.Error } => "pmap-seg--error",
+            _ => "pmap-seg--partition",
+        };
+
+        return segment.WidthFraction < NarrowThreshold ? $"{kind} pmap-seg--narrow" : kind;
+    }
+
+    private static string SeverityBadgeClass(Severity severity) => severity switch
+    {
+        Severity.Error => "bg-danger",
+        Severity.Warning => "bg-warning text-dark",
+        _ => "bg-info text-dark",
+    };
+
+    private static string Headline(DiskSegment segment) => segment.Kind == DiskSegmentKind.Free
+        ? "wolne"
+        : $"{segment.Slot}. {segment.TypeName}";
+
+    private static string Tooltip(DiskSegment segment)
+    {
+        if (segment.Kind == DiskSegmentKind.Free)
+        {
+            return $"Wolne miejsce\nLBA {segment.FirstLba}–{segment.FirstLba + segment.LbaCount - 1}\n{ByteSize.Format(segment.SizeInBytes)}";
+        }
+
+        var lines = new List<string>
+        {
+            $"Partycja {segment.Slot}: {segment.TypeName} (0x{segment.PartitionType:X2})",
+            $"LBA {segment.FirstLba}–{(ulong)segment.FirstLba + segment.LbaCount - 1} ({segment.LbaCount} sektorów)",
+            ByteSize.Format(segment.SizeInBytes),
+        };
+
+        if (segment.Bootable)
+        {
+            lines.Add("Oznaczona jako aktywna (bootowalna)");
+        }
+
+        if (segment.ExtendsBeyondDisk)
+        {
+            lines.Add("Wykracza poza koniec nośnika - narysowana szerokość jest przycięta");
+        }
+
+        return string.Join("\n", lines);
+    }
+}

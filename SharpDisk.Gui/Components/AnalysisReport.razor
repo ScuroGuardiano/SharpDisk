@@ -1,0 +1,58 @@
+@namespace SharpDisk.Gui.Components
+
+<div class="card shadow-0 border">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span class="fw-bold">Analiza</span>
+        <span class="text-muted small">@Summary</span>
+    </div>
+
+    @if (Messages.Count == 0)
+    {
+        <div class="card-body text-success mb-0">
+            Analizator nie zgłosił żadnych uwag.
+        </div>
+    }
+    else
+    {
+        <ul class="list-group list-group-flush">
+            @foreach (var message in Messages)
+            {
+                <li class="list-group-item analysis-item">
+                    <div class="analysis-item-head">
+                        <SeverityBadge Severity="@message.Severity"/>
+                        <span class="analysis-scope">@message.Scope</span>
+                        <span class="analysis-name">@message.Name</span>
+                        <code class="analysis-flag" title="Nazwa flagi w analizatorze">@message.FieldName</code>
+                    </div>
+                    <div class="analysis-description">@message.Description</div>
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<AnalysisMessage> Messages { get; set; } = [];
+
+    private string Summary
+    {
+        get
+        {
+            if (Messages.Count == 0)
+            {
+                return "czysto";
+            }
+
+            var errors = Messages.Count(m => m.Severity == Severity.Error);
+            var warnings = Messages.Count(m => m.Severity == Severity.Warning);
+            var infos = Messages.Count(m => m.Severity == Severity.Info);
+
+            var parts = new List<string>();
+            if (errors > 0) parts.Add($"{errors} błędów");
+            if (warnings > 0) parts.Add($"{warnings} ostrzeżeń");
+            if (infos > 0) parts.Add($"{infos} informacji");
+
+            return string.Join(", ", parts);
+        }
+    }
+}

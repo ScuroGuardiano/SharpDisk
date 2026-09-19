@@ -1,0 +1,201 @@
+@page "/disk"
+@implements IDisposable
+@inject DiskSession Session
+@inject IDiskMapBuilder MapBuilder
+@inject IAnalysisReportBuilder ReportBuilder
+@inject NavigationManager Navigation
+
+@if (Session.Current is not { } disk)
+{
+    <PageHeader Title="Nic nie jest otwarte"
+                Subtitle="Wybierz dysk z listy albo otwórz plik lub urządzenie blokowe."/>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-primary" @onclick='() => Navigation.NavigateTo("")'>Lista dysków</button>
+        <button type="button" class="btn btn-outline-primary" @onclick='() => Navigation.NavigateTo("open")'>Otwórz plik…</button>
+    </div>
+}
+else
+{
+    var map = MapBuilder.Build(disk);
+    var messages = ReportBuilder.Build(disk.Analysis);
+
+    <PageHeader Title="@disk.Source.DisplayName" Subtitle="@disk.Source.Path">
+        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="Close">Zamknij</button>
+    </PageHeader>
+
+    <div class="card shadow-0 border mb-4">
+        <div class="card-body">
+            <div class="fact-grid">
+                <Fact Label="Typ tablicy">
+                    <span class="badge @LayoutBadgeClass(disk.LayoutKind)">@LayoutLabel(disk.LayoutKind)</span>
+                </Fact>
+                <Fact Label="Rozmiar">@ByteSize.Format(disk.SizeInBytes)</Fact>
+                <Fact Label="Sektory">@disk.DriveInfo.SizeInLba &times; @disk.DriveInfo.SectorSizeInBytes B</Fact>
+                <Fact Label="Źródło">@(disk.Source.Kind == DiskSourceKind.Device ? "urządzenie blokowe" : "plik")</Fact>
+                <Fact Label="Sygnatura 55 AA">
+                    @if (disk.HasValidSignature)
+                    {
+                        <span class="text-success">poprawna</span>
+                    }
+                    else
+                    {
+                        <span class="text-danger">brak</span>
+                    }
+                </Fact>
+                <Fact Label="Sygnatura dysku">@DiskSignature(disk)</Fact>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(disk.Source.Details))
+            {
+                <div class="text-muted small mt-3">@disk.Source.Details</div>
+            }
+        </div>
+    </div>
+
+    @if (disk.HasPartitionMap)
+    {
+        <section class="mb-4">
+            <h2 class="section-title">Schemat partycji</h2>
+
+            @if (disk.LayoutKind == MbrLayoutKind.Hybrid)
+            {
+                <div class="alert alert-info py-2" role="alert">
+                    Hybrid MBR. Wpis 0xEE obejmuje cały nośnik i jest rysowany jako osobny pasek nad
+                    mapą - inaczej przykryłby wszystkie prawdziwe partycje.
+                </div>
+            }
+
+            @if (map.HasOverlap)
+            {
+                <div class="alert alert-danger py-2" role="alert">
+                    Partycje nachodzą na siebie, więc mapa ma więcej niż jeden wiersz. Każdy dodatkowy
+                    wiersz to wpis, który nie mieści się obok poprzednich.
+                </div>
+            }
+
+            <PartitionMap Map="@map"/>
+        </section>
+
+        <section class="mb-4">
+            <h2 class="section-title">Wpisy tablicy</h2>
+            <div class="card shadow-0 border">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0 mono-table">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Typ</th>
+                            <th>Nazwa</th>
+                            <th class="text-end">Pierwszy LBA</th>
+                            <th class="text-end">Sektorów</th>
+                            <th class="text-end">Rozmiar</th>
+                            <th>CHS start</th>
+                            <th>CHS koniec</th>
+                            <th>Flagi</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @for (var slot = 0; slot < disk.Table.Partitions.Length; slot++)
+                        {
+                            var partition = disk.Table.Partitions[slot];
+                            var number = slot + 1;
+
+                            <tr class="@(partition.IsZeroed ? "text-muted" : null)">
+                                <td>@number</td>
+                                <td>@($"0x{partition.PartitionType:X2}")</td>
+                                <td>
+                                    @if (partition.IsZeroed)
+                                    {
+                                        <span>puste</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="pmap-swatch me-2" style="background-color:@PartitionPalette.ColorFor(partition.PartitionType)"></span>
+                                        @TypeName(partition.PartitionType)
+                                    }
+                                </td>
+                                <td class="text-end">@partition.FirstLba</td>
+                                <td class="text-end">@partition.LbaCount</td>
+                                <td class="text-end">@ByteSize.Format((ulong)partition.LbaCount * disk.DriveInfo.SectorSizeInBytes)</td>
+                                <td>@Chs(partition.FirstChs)</td>
+                                <td>@Chs(partition.LastChs)</td>
+                                <td>
+                                    @if (partition.Bootable == MbrBootable.Bootable)
+                                    {
+                                        <span class="badge bg-success">boot</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    }
+    else
+    {
+        <div class="alert alert-info" role="alert">
+            @LayoutExplanation(disk.LayoutKind)
+        </div>
+    }
+
+    <section>
+        <h2 class="section-title">Wynik analizy</h2>
+        <AnalysisReport Messages="@messages"/>
+    </section>
+}
+
+@code {
+    protected override void OnInitialized() => Session.Changed += OnSessionChanged;
+
+    public void Dispose() => Session.Changed -= OnSessionChanged;
+
+    private void OnSessionChanged() => InvokeAsync(StateHasChanged);
+
+    private void Close()
+    {
+        Session.Close();
+        Navigation.NavigateTo("");
+    }
+
+    private static string TypeName(byte type)
+        => MbrPartitionTypeDescriptions.GetPrimary(type)?.Type ?? $"Nieznany typ 0x{type:X2}";
+
+    private static string Chs(CHSAddress address) => $"{address.Cylinder}/{address.Head}/{address.Sector}";
+
+    /// <summary>
+    /// Bytes 440-443, the Windows disk signature. It lives outside the partition table, which is
+    /// why it is read from the raw sector rather than from MbrPartitionTable.
+    /// </summary>
+    private static string DiskSignature(OpenedDisk disk)
+    {
+        var value = BitConverter.ToUInt32(disk.RawMbr, 440);
+        return value == 0 ? "0x00000000 (brak)" : $"0x{value:X8}";
+    }
+
+    private static string LayoutLabel(MbrLayoutKind kind) => kind switch
+    {
+        MbrLayoutKind.Empty => "Pusty",
+        MbrLayoutKind.Protective => "Protective MBR (dysk GPT)",
+        MbrLayoutKind.Hybrid => "Hybrid MBR",
+        _ => "Zwykły MBR",
+    };
+
+    private static string LayoutBadgeClass(MbrLayoutKind kind) => kind switch
+    {
+        MbrLayoutKind.Empty => "bg-secondary",
+        MbrLayoutKind.Protective => "bg-secondary",
+        MbrLayoutKind.Hybrid => "bg-warning text-dark",
+        _ => "bg-primary",
+    };
+
+    private static string LayoutExplanation(MbrLayoutKind kind) => kind switch
+    {
+        MbrLayoutKind.Empty =>
+            "Tablica MBR jest pusta - wszystkie cztery wpisy są wyzerowane. Nie ma czego rysować.",
+        MbrLayoutKind.Protective =>
+            "To protective MBR: jedyny wpis ma typ 0xEE i obejmuje cały nośnik, a prawdziwy podział opisuje GPT. "
+            + "Obsługa GPT jeszcze nie istnieje, więc nie ma schematu do pokazania.",
+        _ => "Dla tego układu nie ma schematu partycji.",
+    };
+}

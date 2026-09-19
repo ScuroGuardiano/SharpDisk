@@ -1,0 +1,12 @@
+@namespace SharpDisk.Gui.Components
+
+<div class="fact">
+    <div class="fact-label">@Label</div>
+    <div class="fact-value">@ChildContent</div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

@@ -1,92 +1,412 @@
+/*
+ * Everything on top of MDB: the app shell, and the partition map.
+ * MDB supplies cards, tables, badges, buttons and alerts - do not restyle those here, use its
+ * classes in the markup instead.
+ *
+ * The window runs MDB's dark theme (data-mdb-theme="dark" on <html> in index.html). The tokens
+ * below therefore hang off MDB's own variables wherever one exists, so the two themes cannot
+ * drift apart: change MDB and this follows.
+ */
+
 :root {
-    color-scheme: dark;
-    --bg: #14161a;
-    --panel: #1b1e24;
-    --line: #2b303a;
-    --text: #dfe3ea;
-    --dim: #8b94a3;
-    --accent: #4d9cf6;
-    --err: #ff6b6b;
+    /* Sidebar sits below MDB's body background so the two panes read as separate surfaces. */
+    --sd-sidebar-bg: #1f1f1f;
+    --sd-sidebar-fg: #b9bdc2;
+    --sd-sidebar-muted: #7e858c;
+
+    --sd-accent: #3b71ca;
+
+    --sd-surface: var(--mdb-surface-bg);
+    --sd-bg: var(--mdb-body-bg);
+    --sd-border: var(--mdb-border-color);
+    --sd-ink: var(--mdb-body-color);
+    --sd-ink-soft: rgba(255, 255, 255, .62);
+    --sd-ink-faint: rgba(255, 255, 255, .42);
+
+    /* The two greys of the hatching that shows through wherever nothing is drawn. */
+    --sd-lane-a: #2c2c2c;
+    --sd-lane-b: #343434;
 }
 
-* { box-sizing: border-box; }
+html, body {
+    height: 100%;
+}
 
 body {
     margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font: 14px/1.45 "Segoe UI", Cantarell, "DejaVu Sans", system-ui, sans-serif;
+    background: var(--sd-bg);
+    color: var(--sd-ink);
+    font-family: Roboto, "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
 }
 
-.app { padding: 20px; }
+/* ---------------------------------------------------------------- shell -- */
 
-header {
+.app-shell {
     display: flex;
-    align-items: baseline;
-    gap: 14px;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 12px;
-    margin-bottom: 18px;
+    height: 100vh;
+    overflow: hidden;
 }
 
-h1 { font-size: 20px; margin: 0; letter-spacing: .3px; }
-h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .8px; color: var(--dim); margin: 0 0 10px; }
+.app-sidebar {
+    flex: 0 0 272px;
+    width: 272px;
+    background: var(--sd-sidebar-bg);
+    border-right: 1px solid var(--sd-border);
+    color: var(--sd-sidebar-fg);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0 16px;
+}
 
-.sub { color: var(--dim); font-size: 12px; }
-.muted { color: var(--dim); }
-.dim { color: var(--dim); }
+.app-content {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 28px 32px 56px;
+}
 
-.panes {
+.app-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 20px 22px;
+}
+
+.app-brand-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--sd-accent);
+    color: #fff;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
+    place-items: center;
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1;
 }
 
-@media (max-width: 820px) {
-    .panes { grid-template-columns: 1fr; }
-}
-
-section {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 14px;
-    overflow-x: auto;
-}
-
-table { width: 100%; border-collapse: collapse; }
-
-th {
-    text-align: left;
+.app-brand-name {
+    color: #fff;
     font-weight: 600;
+}
+
+.app-brand-sub {
     font-size: 12px;
-    color: var(--dim);
-    padding: 6px 10px;
-    border-bottom: 1px solid var(--line);
-    white-space: nowrap;
+    color: var(--sd-sidebar-muted);
 }
 
-td {
-    padding: 7px 10px;
-    border-bottom: 1px solid rgba(43, 48, 58, .5);
-    white-space: nowrap;
+.app-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 12px;
 }
 
-.num { text-align: right; font-variant-numeric: tabular-nums; }
-
-tbody tr { cursor: default; }
-tbody tr:hover { background: rgba(77, 156, 246, .07); }
-
-tr.sel { background: rgba(77, 156, 246, .16); }
-tr.sel td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
-
-.error {
-    background: rgba(255, 107, 107, .1);
-    border: 1px solid var(--err);
+.app-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
     border-radius: 8px;
-    padding: 12px 14px;
-    margin-bottom: 16px;
+    color: var(--sd-sidebar-fg);
+    text-decoration: none;
+    font-size: 14px;
+    line-height: 1.3;
+    transition: background-color .12s ease, color .12s ease;
 }
 
-.error strong { color: var(--err); }
-.error pre { margin: 8px 0 0; white-space: pre-wrap; font-size: 12px; }
+.app-nav-link:hover {
+    background: rgba(255, 255, 255, .07);
+    color: #fff;
+}
+
+/* Blazor's NavLink adds .active itself when the route matches. */
+.app-nav-link.active {
+    background: var(--sd-accent);
+    color: #fff;
+}
+
+.app-nav-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    opacity: .9;
+}
+
+.app-open-disk {
+    margin-top: auto;
+    padding: 16px 20px 0;
+    border-top: 1px solid rgba(255, 255, 255, .08);
+}
+
+.app-open-disk-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--sd-sidebar-muted);
+}
+
+.app-open-disk-name {
+    display: block;
+    margin-top: 4px;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.app-open-disk-name:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.app-open-disk-meta {
+    font-size: 12px;
+    color: var(--sd-sidebar-muted);
+}
+
+/* ----------------------------------------------------------- page bits -- */
+
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.page-title {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 600;
+    word-break: break-all;
+}
+
+.page-subtitle {
+    margin: 6px 0 0;
+    max-width: 78ch;
+    color: var(--sd-ink-soft);
+    font-size: 14px;
+    word-break: break-all;
+}
+
+.page-header-actions {
+    flex: 0 0 auto;
+}
+
+.section-title {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--sd-ink-soft);
+}
+
+.fact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 18px 24px;
+}
+
+.fact-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+    color: var(--sd-ink-faint);
+}
+
+.fact-value {
+    margin-top: 2px;
+    font-size: 15px;
+}
+
+.mono-table td:nth-child(1),
+.mono-table td:nth-child(2),
+.mono-table td:nth-child(4),
+.mono-table td:nth-child(5),
+.mono-table td:nth-child(7),
+.mono-table td:nth-child(8) {
+    font-family: ui-monospace, "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+    font-size: 12.5px;
+}
+
+/* -------------------------------------------------------- partition map -- */
+/*
+ * One .pmap-lane is one row of the disk. Segments are absolutely positioned with left/width in
+ * percent of the whole disk, so proportions stay true no matter how wide the window is, and
+ * min-width keeps a 2048-sector partition on a 2 TB disk from disappearing entirely.
+ * The lane's own background is the hatching that shows through wherever nothing is drawn.
+ */
+
+.pmap {
+    background: var(--sd-surface);
+    border: 1px solid var(--sd-border);
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.pmap-lane {
+    position: relative;
+    height: 74px;
+    border: 1px solid var(--sd-border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: repeating-linear-gradient(45deg,
+        var(--sd-lane-a), var(--sd-lane-a) 6px,
+        var(--sd-lane-b) 6px, var(--sd-lane-b) 12px);
+}
+
+.pmap-lane + .pmap-lane {
+    margin-top: 8px;
+}
+
+.pmap-lane--protective {
+    height: 34px;
+    background: #383838;
+}
+
+.pmap-seg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    min-width: 4px;
+    overflow: hidden;
+    border-right: 1px solid rgba(255, 255, 255, .22);
+}
+
+/*
+ * The fill is the type colour laid over a dark lane, so it needs more of it than it would on
+ * white before the tint reads at all.
+ */
+.pmap-seg-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--seg-color);
+    opacity: .26;
+}
+
+.pmap-seg--partition,
+.pmap-seg--error,
+.pmap-seg--protective {
+    border-top: 5px solid var(--seg-color);
+}
+
+.pmap-seg--error {
+    outline: 2px solid #ef5350;
+    outline-offset: -2px;
+}
+
+.pmap-seg--free .pmap-seg-fill {
+    opacity: 0;
+}
+
+.pmap-seg--free .pmap-seg-title,
+.pmap-seg--free .pmap-seg-sub {
+    color: var(--sd-ink-faint);
+    font-weight: 400;
+}
+
+.pmap-seg--narrow .pmap-seg-text {
+    display: none;
+}
+
+.pmap-seg-text {
+    position: relative;
+    padding: 9px 8px 0;
+    white-space: nowrap;
+}
+
+.pmap-seg-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.pmap-seg-sub {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11.5px;
+    color: var(--sd-ink-soft);
+}
+
+.pmap-lane--protective .pmap-seg-text {
+    padding-top: 6px;
+}
+
+.pmap-lane--protective .pmap-seg-sub {
+    display: none;
+}
+
+/*
+ * Rows above the first data row hold entries that could not sit beside the others. Bare
+ * background there is not free space, so it must not look like the hatching that is.
+ */
+.pmap-lane--overlay {
+    background: #383838;
+    border-style: dashed;
+}
+
+.pmap-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin-top: 14px;
+    font-size: 13px;
+}
+
+.pmap-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.pmap-swatch {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 13px;
+    height: 13px;
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, .2);
+    vertical-align: -1px;
+}
+
+.pmap-swatch--free {
+    background: repeating-linear-gradient(45deg,
+        var(--sd-lane-a), var(--sd-lane-a) 3px,
+        #4a4a4a 3px, #4a4a4a 6px);
+}
+
+/* ------------------------------------------------------------ analysis -- */
+
+.analysis-item-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.analysis-scope {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--sd-ink-faint);
+}
+
+.analysis-name {
+    font-weight: 600;
+}
+
+.analysis-flag {
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, .07);
+    color: var(--sd-ink-faint);
+    font-size: 11.5px;
+}
+
+.analysis-description {
+    margin-top: 4px;
+    max-width: 110ch;
+    color: var(--sd-ink-soft);
+    font-size: 13.5px;
+}

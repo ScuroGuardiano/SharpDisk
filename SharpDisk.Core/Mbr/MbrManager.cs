@@ -75,7 +75,10 @@ public class MbrManager
     /// The Analyzer field has been sitting here unused since the class was scaffolded;
     /// this is what it is for. Cheap enough to call after every mutation.
     /// </remarks>
-    public MbrAnalyzeResult Analyze() => throw new NotImplementedException();
+    public MbrAnalyzeResult Analyze()
+    {
+        return Analyzer.Analyze(CurrentPartitionTable);
+    }
 
     #endregion
 

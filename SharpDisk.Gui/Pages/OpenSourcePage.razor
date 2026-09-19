@@ -1,0 +1,104 @@
+@page "/open"
+@inject IDiskOpenService Opener
+@inject IFileDialogService FileDialog
+@inject DiskSession Session
+@inject NavigationManager Navigation
+@inject ILogger<OpenSourcePage> Logger
+
+<PageHeader Title="Otwórz plik/urządzenie blokowe"
+            Subtitle="Obraz dysku, plik ISO albo ścieżka do urządzenia. Cokolwiek ma sektory."/>
+
+<div class="card shadow-0 border mb-4">
+    <div class="card-body">
+        <label class="form-label" for="path">Ścieżka</label>
+        <div class="d-flex gap-2">
+            <input id="path" type="text" class="form-control" placeholder="/home/…/obraz.iso albo /dev/sda"
+                   @bind="_path" @bind:event="oninput" @onkeydown="OnKeyDown"/>
+            <button type="button" class="btn btn-outline-primary text-nowrap" @onclick="Browse" disabled="@_busy">
+                Wybierz plik…
+            </button>
+            <button type="button" class="btn btn-primary text-nowrap" @onclick="Open"
+                    disabled="@(_busy || string.IsNullOrWhiteSpace(_path))">
+                Otwórz
+            </button>
+        </div>
+        <div class="form-text">
+            Ścieżka zaczynająca się od <code>/dev/</code> i pasująca do wykrytego urządzenia zostanie
+            otwarta przez backend systemowy (rozmiar i rozmiar sektora z ioctl). Wszystko inne jest
+            traktowane jak zwykły plik z sektorami po 512 B.
+        </div>
+    </div>
+</div>
+
+@if (_busy)
+{
+    <div class="text-muted d-flex align-items-center gap-2">
+        <span class="spinner-border spinner-border-sm"></span> Otwieram…
+    </div>
+}
+
+@if (_error is not null)
+{
+    <ErrorAlert Title="Nie udało się otworzyć" Message="@_error" Hint="@_hint"/>
+}
+
+@code {
+    private string _path = string.Empty;
+    private bool _busy;
+    private string? _error;
+    private string? _hint;
+
+    private async Task Browse()
+    {
+        try
+        {
+            var picked = await FileDialog.PickFileAsync("Wybierz obraz dysku");
+            if (!string.IsNullOrEmpty(picked))
+            {
+                _path = picked;
+                await Open();
+            }
+        }
+        catch (Exception error)
+        {
+            Logger.LogError(error, "File dialog failed");
+            _error = error.Message;
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter" && !string.IsNullOrWhiteSpace(_path))
+        {
+            await Open();
+        }
+    }
+
+    private async Task Open()
+    {
+        _busy = true;
+        _error = null;
+        _hint = null;
+
+        try
+        {
+            Session.Open(await Opener.OpenPathAsync(_path));
+            Navigation.NavigateTo("disk");
+        }
+        catch (UnauthorizedAccessException error)
+        {
+            Logger.LogWarning(error, "Access denied opening {Path}", _path);
+            _error = $"Brak uprawnień do odczytu {_path}.";
+            _hint = "Surowy dostęp do dysku wymaga roota. Uruchom aplikację przez scripts/run-gui-root.sh.";
+        }
+        catch (Exception error)
+        {
+            Logger.LogError(error, "Opening {Path} failed", _path);
+            _error = error.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

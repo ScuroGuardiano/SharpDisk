@@ -13,20 +13,15 @@ public sealed class FileDriveStream : DriveStream
 {
     public FileDriveStream(string path, bool writable, ulong lbaSize = 512)
     {
-        if (writable)
-        {
-            _file = new FileStream(path, FileMode.Open, FileAccess.ReadWrite);
-            LbaSize = lbaSize;
-            LbaCount = (ulong)Math.Ceiling((double)_file.Length / lbaSize);
-        }
-        else
-        {
-            _file = new FileStream(path, FileMode.Open, FileAccess.Read);
-        }
+        _file = new FileStream(path, FileMode.Open, writable ? FileAccess.ReadWrite : FileAccess.Read);
+
+        LbaSize = lbaSize;
+        LbaCount = (ulong)Math.Ceiling((double)_file.Length / lbaSize);
 
         if (_file.Length < (long)lbaSize)
         {
             // To partition file we need at least one sector for MBR xD So if it's smaller then we can't partition this
+            _file.Dispose();
             throw new InvalidOperationException("File is too small to be partitioned");
         }
     }

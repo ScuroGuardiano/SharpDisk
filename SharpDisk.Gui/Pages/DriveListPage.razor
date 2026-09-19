@@ -1,0 +1,160 @@
+@page "/"
+@inject IBlockDeviceService Devices
+@inject IDiskOpenService Opener
+@inject DiskSession Session
+@inject NavigationManager Navigation
+@inject ILogger<DriveListPage> Logger
+
+<PageHeader Title="Lista dysków"
+            Subtitle="Urządzenia blokowe zgłoszone przez system. Odczyt tablicy partycji wymaga zwykle uprawnień roota.">
+    <button type="button" class="btn btn-outline-primary btn-sm" @onclick="Reload" disabled="@_busy">
+        Odśwież
+    </button>
+</PageHeader>
+
+@if (!Devices.IsSupported)
+{
+    <div class="alert alert-warning" role="alert">
+        SharpDisk nie ma backendu dla tego systemu. Obsługiwany jest Linux, Windows jest zaplanowany.
+    </div>
+}
+else if (_busy && _disks is null)
+{
+    <div class="text-muted d-flex align-items-center gap-2">
+        <span class="spinner-border spinner-border-sm"></span> Szukam dysków…
+    </div>
+}
+else
+{
+    @if (_error is not null)
+    {
+        <ErrorAlert Title="Nie udało się" Message="@_error" Hint="@_hint"/>
+    }
+
+    @if (_disks is { Count: 0 })
+    {
+        <div class="alert alert-info" role="alert">
+            Nie znaleziono żadnego dysku. Urządzenia o zerowym rozmiarze (nieużywane loop, ram)
+            są pomijane.
+        </div>
+    }
+    else if (_disks is not null)
+    {
+        <div class="card shadow-0 border">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>Urządzenie</th>
+                        <th>Model</th>
+                        <th class="text-end">Rozmiar</th>
+                        <th class="text-end">Sektor</th>
+                        <th>Partycje</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var disk in _disks)
+                    {
+                        <tr>
+                            <td>
+                                <span class="fw-bold">/dev/@disk.DevName</span>
+                                @if (disk.ReadOnly)
+                                {
+                                    <span class="badge bg-secondary ms-2">tylko odczyt</span>
+                                }
+                            </td>
+                            <td class="text-muted">@(string.IsNullOrWhiteSpace(disk.Model) ? "—" : disk.Model!.Trim())</td>
+                            <td class="text-end">@ByteSize.Format(disk.Size)</td>
+                            <td class="text-end text-muted">@disk.BlockSize B</td>
+                            <td class="text-muted">@PartitionSummary(disk)</td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-primary btn-sm"
+                                        @onclick="() => Open(disk)" disabled="@_busy">
+                                    Otwórz
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private IReadOnlyList<BlkDevice>? _disks;
+    private bool _busy;
+    private string? _error;
+    private string? _hint;
+
+    protected override Task OnInitializedAsync() => Reload();
+
+    private async Task Reload()
+    {
+        if (!Devices.IsSupported)
+        {
+            return;
+        }
+
+        _busy = true;
+        _error = null;
+        _hint = null;
+
+        try
+        {
+            _disks = await Devices.ListDisksAsync();
+        }
+        catch (Exception error)
+        {
+            Logger.LogError(error, "Listing disks failed");
+            _disks = [];
+            _error = error.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task Open(BlkDevice disk)
+    {
+        _busy = true;
+        _error = null;
+        _hint = null;
+
+        try
+        {
+            Session.Open(await Opener.OpenDeviceAsync(disk));
+            Navigation.NavigateTo("disk");
+        }
+        catch (UnauthorizedAccessException error)
+        {
+            Logger.LogWarning(error, "Access denied opening /dev/{DevName}", disk.DevName);
+            _error = $"Brak uprawnień do odczytu /dev/{disk.DevName}.";
+            _hint = "Surowy dostęp do dysku wymaga roota. Uruchom aplikację przez scripts/run-gui-root.sh.";
+        }
+        catch (Exception error)
+        {
+            Logger.LogError(error, "Opening /dev/{DevName} failed", disk.DevName);
+            _error = error.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private static string PartitionSummary(BlkDevice disk)
+    {
+        var children = disk.Children;
+        if (children is null || children.Count == 0)
+        {
+            return "—";
+        }
+
+        var mounted = children.Count(child => child.Mountpoints is { Count: > 0 });
+        return mounted > 0 ? $"{children.Count} ({mounted} zamontowane)" : children.Count.ToString();
+    }
+}

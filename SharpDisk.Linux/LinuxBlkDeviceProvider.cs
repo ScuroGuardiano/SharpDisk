@@ -9,6 +9,16 @@ internal class LinuxBlkDeviceProvider : IBlkDeviceProvider
     private readonly UEventParser _ueventParser = new UEventParser();
     private readonly ProcMountsParser _procMountsParser = new ProcMountsParser();
     
+    public DriveStream OpenDevice(BlkDevice device, bool writable = false)
+    {
+        ArgumentNullException.ThrowIfNull(device);
+
+        return new BlockDeviceStream(
+            $"/dev/{device.DevName}",
+            writable,
+            allowPartition: device.DeviceType == BlkDeviceType.Partition);
+    }
+
     public async Task<IReadOnlyList<BlkDevice>> ListDevices()
     {
         List<BlkDevice> devices = [];

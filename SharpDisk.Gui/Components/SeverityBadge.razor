@@ -1,0 +1,21 @@
+@namespace SharpDisk.Gui.Components
+
+<span class="badge @CssClass">@Label</span>
+
+@code {
+    [Parameter, EditorRequired] public Severity Severity { get; set; }
+
+    private string CssClass => Severity switch
+    {
+        Severity.Error => "bg-danger",
+        Severity.Warning => "bg-warning text-dark",
+        _ => "bg-info text-dark",
+    };
+
+    private string Label => Severity switch
+    {
+        Severity.Error => "Błąd",
+        Severity.Warning => "Ostrzeżenie",
+        _ => "Informacja",
+    };
+}

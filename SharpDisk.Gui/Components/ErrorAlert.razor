@@ -1,0 +1,19 @@
+@namespace SharpDisk.Gui.Components
+
+<div class="alert alert-danger" role="alert">
+    <div class="fw-bold">@Title</div>
+    <div>@Message</div>
+    @if (!string.IsNullOrWhiteSpace(Hint))
+    {
+        <div class="mt-2 small">@Hint</div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired] public string? Message { get; set; }
+
+    /// <summary>What the user can actually do about it. Optional.</summary>
+    [Parameter] public string? Hint { get; set; }
+}
